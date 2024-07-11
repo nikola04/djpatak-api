@@ -1,0 +1,26 @@
+{
+  "name": "api-server",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "node --env-file=.env.local --watch -r ts-node/register server.ts",
+    "start": "node --env-file=.env.production server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.3"
+  },
+  "dependencies": {
+    "@discordjs/voice": "^0.17.0",
+    "discord.js": "^14.15.3",
+    "express": "^4.19.2",
+    "mongoose": "^8.5.0",
+    "redis": "^4.6.15"
+  }
+}
