@@ -41,6 +41,7 @@ router.post('/:playerId/track/:trackId', async (req, res) => {
         }
     })
     player.play(resource)
+    connection.player = player
     connection.subscribe(player)
     return res.json({ status: 'OK' })
 })
