@@ -33,16 +33,13 @@ router.post('/:playerId/track/:trackId', async (req, res) => { // Playing track
     })
     if(!stream)
         return res.status(404).json({ status: 'ERROR', error: 'Stream Not Found' })
-    const resource = createAudioResource(stream.stream, {
-        inputType: stream.type
-    })
+    const resource = createAudioResource(stream.stream, { inputType: stream.type })
     const player = createAudioPlayer({
         behaviors: { noSubscriber: NoSubscriberBehavior.Pause }
     })
     player.on("stateChange", (oldState, newState) => {
-        if(oldState.status == AudioPlayerStatus.Playing && newState.status == AudioPlayerStatus.Idle){
+        if(oldState.status == AudioPlayerStatus.Playing && newState.status == AudioPlayerStatus.Idle)
             connection.track = undefined;
-        }
     })
     player.play(resource)
     connection.player = player

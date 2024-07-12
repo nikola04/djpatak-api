@@ -2,6 +2,7 @@ import express from 'express'
 import mongoose from 'mongoose'
 import { Client, Events, GatewayIntentBits } from 'discord.js'
 import playDl from 'play-dl'
+import cors from 'cors'
 import v1Router from './src/api/v1/route'
 
 // INITIALIZATION
@@ -12,6 +13,12 @@ const botClient = new Client({
         GatewayIntentBits.GuildVoiceStates
     ] 
 })
+  
+app.use(cors({
+    origin: process.env.APP_URL,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type'],
+}));
 
 // ROUTES
 app.use('/api/v1/', v1Router)
