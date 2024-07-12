@@ -1,4 +1,4 @@
-import { SoundcloudTrack } from "../types/soundcloud";
+import { QueueTrack, scTrackToTrack, Track } from "../classes/queueTrack";
 
 interface SearchOptions{
     limit?: number,
@@ -10,22 +10,22 @@ interface SearchOptions{
  * @param options Optionally provide additional informations. limit -> Number of results (If limit is set to 1, function will return object instead of array). genre -> Genre of tracks for more precise search. 
  * @returns Array of SoundcloudTrack objects or SoundcloudTrack object if limit is set to 1
  */
-async function search(soundcloudId: string, query: string, options?: SearchOptions): Promise<SoundcloudTrack[]|null>{
-        if(soundcloudId == null) return null;
-        const url = new URL("https://api-v2.soundcloud.com/search/tracks");
-        url.searchParams.set('q', query);
-        url.searchParams.set('client_id', soundcloudId);
-        url.searchParams.set('limit', String(options?.limit || 10));
-        if(options?.genre != null) url.searchParams.set('genre', options.genre);
-        const result = await fetch(url, { method: 'GET' }).then(res => res.json()).catch(err => err);
-        if(result instanceof Error || result?.total_results < 1) return null;
-        const tracks: SoundcloudTrack[] = [];
-        result?.collection?.forEach((track: any) => {
-            const sc_track: SoundcloudTrack = track;
-            tracks.push(sc_track);
-        })
-        return tracks;
-    }
+async function search(soundcloudId: string, query: string, options?: SearchOptions): Promise<Track[]|null>{
+    if(soundcloudId == null) return null;
+    const url = new URL("https://api-v2.soundcloud.com/search/tracks");
+    url.searchParams.set('q', query);
+    url.searchParams.set('client_id', soundcloudId);
+    url.searchParams.set('limit', String(options?.limit || 10));
+    if(options?.genre != null) url.searchParams.set('genre', options.genre);
+    const result = await fetch(url, { method: 'GET' }).then(res => res.json()).catch(err => err);
+    if(result instanceof Error || result?.total_results < 1) return null;
+    const tracks: Track[] = [];
+    result?.collection?.forEach((track: any) => {
+        const sc_track = scTrackToTrack(track);
+        tracks.push(sc_track);
+    })
+    return tracks;
+}
 
 /**
  * A bit of hacking to retrieve generated client id from soundcloud

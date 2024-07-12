@@ -1,6 +1,7 @@
 import express from 'express'
 import mongoose from 'mongoose'
 import { Client, Events, GatewayIntentBits } from 'discord.js'
+import { createClient } from 'redis';
 import playDl from 'play-dl'
 import cors from 'cors'
 import v1Router from './src/api/v1/route'
@@ -12,6 +13,13 @@ const botClient = new Client({
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildVoiceStates
     ] 
+})
+const redisClient = createClient({
+    password: process.env.REDIS_PSWD,
+    socket: {
+        host: process.env.REDIS_HOST,
+        port: Number(process.env.REDIS_PORT)
+    }
 })
   
 app.use(cors({
@@ -25,20 +33,29 @@ app.use('/api/v1/', v1Router)
 
 // EVENTS
 console.log("> Starting server...")
-app.listen(process.env.PORT, () => {
+app.listen(process.env.PORT, () => 
     console.log('✅', `Listening on http://localhost:${process.env.PORT}/`)
+)
+
+botClient.once(Events.ClientReady, readyClient => 
+    console.log('✅', `Bot Ready! Logged in as ${readyClient.user.tag}!`)
+).login(process.env.DISCORD_CLIENT_TOKEN).catch(err => {
+    console.error('❌', 'Bot Connection Error:', err)
 })
 
-botClient.once(Events.ClientReady, readyClient => {
-    console.log('✅', `Bot Ready! Logged in as ${readyClient.user.tag}!`);
-}).login(process.env.DISCORD_CLIENT_TOKEN)
-
-mongoose.connect(process.env.MONGODB_URI!).then(() => {
+mongoose.connect(process.env.MONGODB_URI!).then(() => 
     console.log('✅', 'MongoDB Connected!')
-}).catch((err) => {
+).catch((err) => {
     console.error('❌', 'MongoDB Not Connected: ', err)
 })
 
+redisClient.connect().then(() => {
+    console.log('✅', 'Redis Connected!')
+    redisClient.flushDb().then(() => console.log('✅', 'Redis Cleared!'))
+    .catch(err => console.error('❌', 'Redis Error while cleaning:', err))
+}).catch((err) => {
+    console.error('❌', 'Redis Not Connected: ', err)
+})
 playDl.getFreeClientID().then((clientID: string) => {
     playDl.setToken({
       soundcloud : {
@@ -48,5 +65,6 @@ playDl.getFreeClientID().then((clientID: string) => {
 })
 
 export { 
-    botClient
+    botClient,
+    redisClient
 }

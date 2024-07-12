@@ -10,8 +10,8 @@ async function initVoiceConnection(channel: GuildBasedChannel){
     connection.on(VoiceConnectionStatus.Disconnected, async (oldState, newState) => {
         try {
             await Promise.race([
-                entersState(connection, VoiceConnectionStatus.Signalling, 2_000),
-                entersState(connection, VoiceConnectionStatus.Connecting, 2_000),
+                entersState(connection, VoiceConnectionStatus.Signalling, 3_000),
+                entersState(connection, VoiceConnectionStatus.Connecting, 3_000),
             ]);
             // Seems to be reconnecting to a new channel - ignore disconnect
         } catch (err) {

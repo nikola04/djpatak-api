@@ -5,6 +5,6 @@ import { SoundCloudTrack } from 'play-dl';
 declare module '@discordjs/voice' {
   interface VoiceConnection {
     player?: AudioPlayer;
-    track?: SoundCloudTrack
+    trackId?: number
   }
 }
