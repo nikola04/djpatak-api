@@ -10,7 +10,20 @@ const redisTracksId = (playerId: string) => `player:${playerId}#tracks`
  * @returns Number of tracks in queue
  */
 async function addTrack(playerId: string, ...tracks: SoundCloudTrack[]){
-    const stringifiedTracks = tracks.map((track) => JSON.stringify({ queueId: uuid(), track: scTrackToTrack(track) }))
+    const stringifiedTracks = tracks.map((track) => JSON.stringify({ queueId: uuid(), track: {
+        id: track.id,
+        title: track.name,
+        permalink: track.permalink,
+        duration: track.durationInMs,
+        formats: track.formats,
+        thumbnail: track.thumbnail,
+        user: {
+            id: track.user.id,
+            username: track.user.name,
+            permalink: track.user.url,
+            thumbnail: track.user.thumbnail
+        }
+    }}))
     return await redisClient.rPush(redisTracksId(playerId), stringifiedTracks)
 }
 

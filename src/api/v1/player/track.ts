@@ -14,20 +14,20 @@ router.post('/:playerId/tracks/next', async (req, res) => { // Getting current t
     const playerId = req.params.playerId
     const guild = await botClient.guilds.fetch(playerId)
     if(!guild) 
-        return res.status(404).json({ status: 'ERROR', error: 'No Player Found' })
+        return res.status(404).json({ status: 'error', error: 'No Player Found' })
     const connection = getVoiceConnection(guild.id)
     if(!connection || !connection.player)
-        return res.status(400).json({ status: 'ERROR', error: 'Player is not connected' })
+        return res.status(400).json({ status: 'error', error: 'Player is not connected' })
     const [playerState, track] = await playNextTrack(connection, playerId)
     if(playerState == PlayerState.NoStream) 
-        return res.json({ status: 'ERROR', error: 'Stream Not Found', player: null })
+        return res.json({ status: 'error', error: 'Stream Not Found', player: null })
     if(playerState == PlayerState.QueueEnd) 
-        return res.json({ status: 'OK', player: {
+        return res.json({ status: 'ok', player: {
             status: connection.player?.state.status,
             track: null
         } })
     if(playerState == PlayerState.Playing) 
-        return res.json({ status: 'OK', player: {
+        return res.json({ status: 'ok', player: {
             status: connection.player?.state.status,
             track
         } })
@@ -37,20 +37,20 @@ router.post('/:playerId/tracks/prev', async (req, res) => { // Getting current t
     const playerId = req.params.playerId
     const guild = await botClient.guilds.fetch(playerId)
     if(!guild) 
-        return res.status(404).json({ status: 'ERROR', error: 'No Player Found' })
+        return res.status(404).json({ status: 'error', error: 'No Player Found' })
     const connection = getVoiceConnection(guild.id)
     if(!connection || !connection.player)
-        return res.status(400).json({ status: 'ERROR', error: 'Player is not connected' })
+        return res.status(400).json({ status: 'error', error: 'Player is not connected' })
     const [playerState, track] = await playPrevTrack(connection, playerId)
     if(playerState == PlayerState.NoStream) 
-        return res.json({ status: 'ERROR', error: 'Stream Not Found', player: null })
+        return res.json({ status: 'error', error: 'Stream Not Found', player: null })
     if(playerState == PlayerState.QueueEnd) 
-        return res.json({ status: 'OK', player: {
+        return res.json({ status: 'ok', player: {
             status: connection.player?.state.status,
             track: null
         } })
     if(playerState == PlayerState.Playing) 
-        return res.json({ status: 'OK', player: {
+        return res.json({ status: 'ok', player: {
             status: connection.player?.state.status,
             track
         } })
@@ -61,18 +61,18 @@ router.post('/:playerId/tracks/:trackId', async (req, res) => {
     const trackId = req.params.trackId
     const channelId = "876223342246510593"
     if(!(await validateId(trackId)))
-        return res.status(400).json({ status: 'ERROR', error: 'Invalid SoundCloud URL'})
+        return res.status(400).json({ status: 'error', error: 'Invalid SoundCloud URL'})
     const guild = await botClient.guilds.fetch(playerId)
     if(!guild) 
-        return res.status(404).json({ status: 'ERROR', error: 'No Player Found' })
+        return res.status(404).json({ status: 'error', error: 'No Player Found' })
     const channel = guild.channels.cache.find(channel => channel.id == channelId)
     if(!channel)
-        return res.status(404).json({ status: 'ERROR', error: 'Channel ID Not Found' })
+        return res.status(404).json({ status: 'error', error: 'Channel ID Not Found' })
     const connection = await getOrInitVoiceConnection(channel)
     const so_info = await playDl.soundcloud(trackId) as SoundCloudTrack // Proven to be track with validateId
     // 1. If player doesnt exists create one
     if(!connection.player){
-        initializePlayer(playerId, connection, { onQueueEnd: () => {
+        initializePlayer(playerId, connection, { onQueueEnd: () => { // should be emitted in live socket connection
             console.log('Queue has ended')
         }, onStreamError: () => {
             console.warn('No Stream')
@@ -84,42 +84,42 @@ router.post('/:playerId/tracks/:trackId', async (req, res) => {
     if(connection.player?.state.status == AudioPlayerStatus.Idle){
         const playerState = await playTrack(connection, playerId, so_info)
         if(playerState == PlayerState.NoStream)
-            return res.status(404).json({ status: 'ERROR', error: 'Stream Not Found' })
+            return res.status(404).json({ status: 'error', error: 'Stream Not Found' })
     }
     // 3. Add track to queue
         addTrack(playerId, so_info)
-    return res.json({ status: 'OK' })
+    return res.json({ status: 'ok' })
 })
 
 router.get('/:playerId/tracks/current', async (req, res) => { // Getting current track
     const playerId = req.params.playerId
     const guild = await botClient.guilds.fetch(playerId)
     if(!guild) 
-        return res.status(404).json({ status: 'ERROR', error: 'No Player Found' })
+        return res.status(404).json({ status: 'error', error: 'No Player Found' })
     const connection = getVoiceConnection(guild.id)
     if(!connection)
-        return res.status(400).json({ status: 'ERROR', error: 'Player is not connected' })
+        return res.status(400).json({ status: 'error', error: 'Player is not connected' })
     if(connection.trackId == null)
-        return res.json({ status: 'OK', queueTrack: null, playerStatus: connection.player?.state.status })
+        return res.json({ status: 'ok', queueTrack: null, playerStatus: connection.player?.state.status })
     const queueTrack = await getTrackById(playerId, connection.trackId)
-    return res.json({ status: 'OK', queueTrack, playerStatus: connection.player?.state.status })
+    return res.json({ status: 'ok', queueTrack, playerStatus: connection.player?.state.status })
 })
 
 router.get('/:playerId/tracks/', async (req, res) => { // Getting current track
     const playerId = req.params.playerId
     const guild = await botClient.guilds.fetch(playerId)
     if(!guild) 
-        return res.status(404).json({ status: 'ERROR', error: 'No Player Found' })
+        return res.status(404).json({ status: 'error', error: 'No Player Found' })
     const connection = getVoiceConnection(guild.id)
     if(!connection)
-        return res.status(400).json({ status: 'ERROR', error: 'Player is not connected' })
+        return res.status(400).json({ status: 'error', error: 'Player is not connected' })
     if(connection.trackId == null)
-        return res.json({ status: 'OK', player: {
+        return res.json({ status: 'ok', player: {
             status: connection.player?.state.status,
             track: null
     } })
     const queueTracks = await getAllTracks(playerId)
-    return res.json({ status: 'OK', results: queueTracks })
+    return res.json({ status: 'ok', results: queueTracks })
 })
 
 async function validateId(id: string): Promise<boolean>{

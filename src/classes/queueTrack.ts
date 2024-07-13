@@ -30,23 +30,6 @@ class Track{
     }
 }
 
-function scTrackToTrack(track: any){
-    return ({
-        id: track.id,
-        title: track.name,
-        permalink: track.permalink,
-        duration: track.durationInMs,
-        formats: track.formats,
-        thumbnail: track.thumbnail,
-        user: {
-            id: track.user.id,
-            username: track.user.name,
-            permalink: track.user.url,
-            thumbnail: track.user.thumbnail
-        }
-    })
-}
-
 class QueueTrack {
     public queueId: string
     public track: Track
@@ -62,6 +45,5 @@ class QueueTrack {
 export {
     QueueTrack,
     Track,
-    SoundCloudUser,
-    scTrackToTrack
+    SoundCloudUser
 }

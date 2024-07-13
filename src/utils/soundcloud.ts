@@ -1,4 +1,4 @@
-import { QueueTrack, scTrackToTrack, Track } from "../classes/queueTrack";
+import { Track } from "../classes/queueTrack";
 
 interface SearchOptions{
     limit?: number,
@@ -21,8 +21,20 @@ async function search(soundcloudId: string, query: string, options?: SearchOptio
     if(result instanceof Error || result?.total_results < 1) return null;
     const tracks: Track[] = [];
     result?.collection?.forEach((track: any) => {
-        const sc_track = scTrackToTrack(track);
-        tracks.push(sc_track);
+        tracks.push({
+            id: track.id,
+            title: track.title,
+            permalink: track.permalink_url,
+            duration: track.duration,
+            thumbnail: track.artwork_url,
+            formats: [],
+            user: {
+                id: track.user.id,
+                username: track.user.username,
+                permalink: track.user.permalink_url,
+                thumbnail: track.user.avatar_url
+            }
+        });
     })
     return tracks;
 }

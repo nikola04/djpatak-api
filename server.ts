@@ -5,6 +5,7 @@ import { createClient } from 'redis';
 import playDl from 'play-dl'
 import cors from 'cors'
 import v1Router from './src/api/v1/route'
+import authRouter from './src/auth/route'
 
 // INITIALIZATION
 const app = express()
@@ -30,6 +31,7 @@ app.use(cors({
 
 // ROUTES
 app.use('/api/v1/', v1Router)
+app.use('/auth', authRouter)
 
 // EVENTS
 console.log("> Starting server...")
