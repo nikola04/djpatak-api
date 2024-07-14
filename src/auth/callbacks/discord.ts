@@ -34,7 +34,7 @@ router.get('/', async (req: Request, res: Response) => {
     if(!userResult || !userResult.id)
         return res.status(500).json({ status: 'error', error: 'Error while getting Discord User' })
     // Create Account if doesnt exists
-    let account = await Account.findOne({ providerAccountId: userResult.id, provider: 'discord' }) ?? await newDiscordAccountUser(userResult, oAuthData)
+    const account = await Account.findOne({ providerAccountId: userResult.id, provider: 'discord' }) ?? await newDiscordAccountUser(userResult, oAuthData)
     await Promise.all([Account.findByIdAndUpdate(account._id, { // update tokens and user data
         tokenType: oAuthData.token_type,
         accessToken: oAuthData.access_token,
@@ -45,7 +45,7 @@ router.get('/', async (req: Request, res: Response) => {
         email: userResult.email,
         image: discordAvatarURL(userResult)
     })])
-    const { accessToken } = await generateAndSetToken(res, String(account.userId!))
+    await generateAndSetToken(res, String(account.userId!))
     return res.redirect(301, process.env.APP_URL!)
 })
 

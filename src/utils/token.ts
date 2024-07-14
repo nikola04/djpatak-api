@@ -87,7 +87,6 @@ export default async function generateAndSetTokens(res: Response, userId: string
         httpOnly: true,
         secure: true,
         sameSite: 'strict',
-        path: '/auth/token/refresh',
         maxAge: cookieExpiry
     })
     res.cookie('csrf_token', csrfToken, { 

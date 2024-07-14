@@ -23,8 +23,8 @@ async function initVoiceConnection(channel: GuildBasedChannel){
 
 async function getOrInitVoiceConnection(channel: GuildBasedChannel){
     const oldConnection = getVoiceConnection(channel.guildId)
-    if(oldConnection) return oldConnection
-    return await initVoiceConnection(channel)
+    if(oldConnection) return ({ connection: oldConnection, isNew: false })
+    return ({ connection: await initVoiceConnection(channel), isNew: true })
 }
 
 export {

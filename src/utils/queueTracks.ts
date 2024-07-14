@@ -1,7 +1,7 @@
 import { SoundCloudTrack } from "play-dl"
 import { redisClient } from "../../server"
 import { v4 as uuid } from 'uuid'
-import { QueueTrack, scTrackToTrack } from "../classes/queueTrack"
+import { QueueTrack } from "../classes/queueTrack"
 
 const redisTracksId = (playerId: string) => `player:${playerId}#tracks`
 

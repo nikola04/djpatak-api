@@ -1,19 +1,54 @@
 import { Schema, model } from "mongoose";
 
-const accountSchema = new Schema({
+export interface IAccount{
+    _id: Schema.Types.ObjectId;
+    provider: string,
+    providerAccountId: string,
+    providerAccountScopes: string,
+    tokenType: string,
+    accessToken: string,
+    refreshToken: string,
+    expiresAt: number,
+    userId: Schema.Types.ObjectId
+}
+
+const accountSchema = new Schema<IAccount>({
     provider: {
         type: String,
-        enum: ['discord']
+        enum: ['discord'],
+        required: true
     },
-    providerAccountId: String,
-    providerAccountScopes: String,
-    tokenType: String,
-    accessToken: String,
-    refreshToken: String,
-    expiresAt: Number,
-    userId: Schema.ObjectId
+    providerAccountId: {
+        type: String,
+        required: true
+    },
+    providerAccountScopes: {
+        type: String,
+        required: true
+    },
+    tokenType: {
+        type: String,
+        required: true
+    },
+    accessToken: {
+        type: String,
+        required: true
+    },
+    refreshToken: {
+        type: String,
+        required: true
+    },
+    expiresAt: {
+        type: Number,
+        required: true
+    },
+    userId: {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    }
 });
 
-const Account = model('accounts', accountSchema);
+const AccountModel = model('accounts', accountSchema);
 
-export default Account
+export default AccountModel

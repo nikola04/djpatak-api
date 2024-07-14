@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Request, Response, Router } from "express";
 import { botClient } from "../../../../server";
 import { getOrInitVoiceConnection } from "../../../utils/voiceConnection";
 import playDl, { SoundCloudTrack } from 'play-dl'
@@ -10,14 +10,23 @@ import { initializePlayer, PlayerState, playNextTrack, playPrevTrack, playTrack 
 const router = Router()
 
 // ROUTES
-router.post('/:playerId/tracks/next', async (req, res) => { // Getting current track
+router.post('/:playerId/tracks/next', async (req: Request, res: Response) => { // Getting current track
     const playerId = req.params.playerId
-    const guild = await botClient.guilds.fetch(playerId)
+    const guild = botClient.guilds.cache.get(playerId)
+    const userDiscordId = req.userDiscordId
+    if(!userDiscordId) return res.sendStatus(401)
     if(!guild) 
         return res.status(404).json({ status: 'error', error: 'No Player Found' })
+    const member = guild.members.cache.get(userDiscordId)
+    if(!member) return res.status(403).json({ status: 'error', error: 'User is not in Guild Voice'})
+    const channel = member.voice.channel
+    if(!channel)
+        return res.status(403).json({ status: 'error', error: 'User Not in Voice Channel' })
     const connection = getVoiceConnection(guild.id)
     if(!connection || !connection.player)
         return res.status(400).json({ status: 'error', error: 'Player is not connected' })
+    if(guild.members.me?.voice.channelId != channel.id)
+        return res.status(403).json({ status: 'error', error: 'User is not in same Channel as Bot'})
     const [playerState, track] = await playNextTrack(connection, playerId)
     if(playerState == PlayerState.NoStream) 
         return res.json({ status: 'error', error: 'Stream Not Found', player: null })
@@ -33,14 +42,23 @@ router.post('/:playerId/tracks/next', async (req, res) => { // Getting current t
         } })
 })
 
-router.post('/:playerId/tracks/prev', async (req, res) => { // Getting current track
+router.post('/:playerId/tracks/prev', async (req: Request, res: Response) => { // Getting current track
     const playerId = req.params.playerId
-    const guild = await botClient.guilds.fetch(playerId)
+    const guild = botClient.guilds.cache.get(playerId)
+    const userDiscordId = req.userDiscordId
+    if(!userDiscordId) return res.sendStatus(401)
     if(!guild) 
         return res.status(404).json({ status: 'error', error: 'No Player Found' })
+    const member = guild.members.cache.get(userDiscordId)
+    if(!member) return res.status(403).json({ status: 'error', error: 'User is not in Guild Voice'})
+    const channel = member.voice.channel
+    if(!channel)
+        return res.status(403).json({ status: 'error', error: 'User Not in Voice Channel' })
     const connection = getVoiceConnection(guild.id)
     if(!connection || !connection.player)
         return res.status(400).json({ status: 'error', error: 'Player is not connected' })
+    if(guild.members.me?.voice.channelId != channel.id)
+        return res.status(403).json({ status: 'error', error: 'User is not in same Channel as Bot'})
     const [playerState, track] = await playPrevTrack(connection, playerId)
     if(playerState == PlayerState.NoStream) 
         return res.json({ status: 'error', error: 'Stream Not Found', player: null })
@@ -56,19 +74,24 @@ router.post('/:playerId/tracks/prev', async (req, res) => { // Getting current t
         } })
 })
 
-router.post('/:playerId/tracks/:trackId', async (req, res) => {
+router.post('/:playerId/tracks/:trackId', async (req: Request, res: Response) => {
+    const userDiscordId = req.userDiscordId
     const playerId = req.params.playerId
     const trackId = req.params.trackId
-    const channelId = "876223342246510593"
+    if(!userDiscordId) return res.sendStatus(401)
     if(!(await validateId(trackId)))
         return res.status(400).json({ status: 'error', error: 'Invalid SoundCloud URL'})
-    const guild = await botClient.guilds.fetch(playerId)
+    const guild = botClient.guilds.cache.get(playerId)
     if(!guild) 
         return res.status(404).json({ status: 'error', error: 'No Player Found' })
-    const channel = guild.channels.cache.find(channel => channel.id == channelId)
+    const member = guild.members.cache.get(userDiscordId)
+    if(!member) return res.status(403).json({ status: 'error', error: 'User is not in Guild Voice'})
+    const channel = member.voice.channel
     if(!channel)
-        return res.status(404).json({ status: 'error', error: 'Channel ID Not Found' })
-    const connection = await getOrInitVoiceConnection(channel)
+        return res.status(403).json({ status: 'error', error: 'User Not in Voice Channel' })
+    const { connection, isNew } = await getOrInitVoiceConnection(channel)
+    if(!isNew && guild.members.me?.voice.channelId != channel.id)
+        return res.status(403).json({ status: 'error', error: 'User is not in same Channel as Bot'})
     const so_info = await playDl.soundcloud(trackId) as SoundCloudTrack // Proven to be track with validateId
     // 1. If player doesnt exists create one
     if(!connection.player){
@@ -91,11 +114,20 @@ router.post('/:playerId/tracks/:trackId', async (req, res) => {
     return res.json({ status: 'ok' })
 })
 
-router.get('/:playerId/tracks/current', async (req, res) => { // Getting current track
+router.get('/:playerId/tracks/current', async (req: Request, res: Response) => { // Getting current track
     const playerId = req.params.playerId
-    const guild = await botClient.guilds.fetch(playerId)
+    const guild = botClient.guilds.cache.get(playerId)
+    const userDiscordId = req.userDiscordId
+    if(!userDiscordId) return res.sendStatus(401)
     if(!guild) 
         return res.status(404).json({ status: 'error', error: 'No Player Found' })
+    const member = guild.members.cache.get(userDiscordId)
+    if(!member) return res.status(403).json({ status: 'error', error: 'User is not in Guild Voice'})
+    const channel = member.voice.channel
+    if(!channel)
+        return res.status(403).json({ status: 'error', error: 'User Not in Voice Channel' })
+    if(guild.members.me?.voice.channelId != channel.id)
+        return res.status(403).json({ status: 'error', error: 'User is not in same Channel as Bot'})
     const connection = getVoiceConnection(guild.id)
     if(!connection)
         return res.status(400).json({ status: 'error', error: 'Player is not connected' })
@@ -105,11 +137,20 @@ router.get('/:playerId/tracks/current', async (req, res) => { // Getting current
     return res.json({ status: 'ok', queueTrack, playerStatus: connection.player?.state.status })
 })
 
-router.get('/:playerId/tracks/', async (req, res) => { // Getting current track
+router.get('/:playerId/tracks/', async (req: Request, res: Response) => { // Getting current track
     const playerId = req.params.playerId
-    const guild = await botClient.guilds.fetch(playerId)
+    const guild = botClient.guilds.cache.get(playerId)
+    const userDiscordId = req.userDiscordId
+    if(!userDiscordId) return res.sendStatus(401)
     if(!guild) 
         return res.status(404).json({ status: 'error', error: 'No Player Found' })
+    const member = guild.members.cache.get(userDiscordId)
+    if(!member) return res.status(403).json({ status: 'error', error: 'User is not in Guild Voice'})
+    const channel = member.voice.channel
+    if(!channel)
+        return res.status(403).json({ status: 'error', error: 'User Not in Voice Channel' })
+    if(guild.members.me?.voice.channelId != channel.id)
+        return res.status(403).json({ status: 'error', error: 'User is not in same Channel as Bot'})
     const connection = getVoiceConnection(guild.id)
     if(!connection)
         return res.status(400).json({ status: 'error', error: 'Player is not connected' })

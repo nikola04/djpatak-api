@@ -26,7 +26,8 @@ const redisClient = createClient({
 app.use(cors({
     origin: process.env.APP_URL,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type'],
+    allowedHeaders: ['Content-Type', ' Access-Control-Allow-Origin'],
+    credentials: true
 }));
 
 // ROUTES

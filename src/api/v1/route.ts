@@ -14,6 +14,6 @@ router.use(authenticate())
 // ROUTES
 router.use('/tracks', tracksRoute)
 router.use('/player', playerRoute)
-router.use('/user', usersRoute)
+router.use('/users', usersRoute)
 
 export default router

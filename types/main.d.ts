@@ -7,11 +7,12 @@ import { SoundCloudTrack } from 'play-dl';
 declare module '@discordjs/voice' {
   interface VoiceConnection {
     player?: AudioPlayer;
-    trackId?: number
+    trackId?: number;
   }
 }
 declare module 'express' {
   interface Request {
-    userId?: string
+    userDiscordId?: string;
+    userId?: string;
   }
 }
