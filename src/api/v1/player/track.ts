@@ -3,8 +3,9 @@ import { botClient } from "../../../../server";
 import { getOrInitVoiceConnection } from "../../../utils/voiceConnection";
 import playDl, { SoundCloudTrack } from 'play-dl'
 import { AudioPlayerStatus, getVoiceConnection } from "@discordjs/voice";
-import { getTrackById, addTrack, getAllTracks } from "../../../utils/queueTracks";
+import { getTrackById, addTrack, getAllTracks, getTracksLen } from "../../../utils/queueTracks";
 import { initializePlayer, PlayerState, playNextTrack, playPrevTrack, playTrack } from "../../../utils/player";
+import { QueueTrack } from "@/classes/queueTrack";
 
 // INIT
 const router = Router()
@@ -27,18 +28,18 @@ router.post('/:playerId/tracks/next', async (req: Request, res: Response) => { /
         return res.status(400).json({ status: 'error', error: 'Player is not connected' })
     if(guild.members.me?.voice.channelId != channel.id)
         return res.status(403).json({ status: 'error', error: 'User is not in same Channel as Bot'})
-    const [playerState, track] = await playNextTrack(connection, playerId)
+    const [playerState, queueTrack] = await playNextTrack(connection, playerId)
     if(playerState == PlayerState.NoStream) 
         return res.json({ status: 'error', error: 'Stream Not Found', player: null })
     if(playerState == PlayerState.QueueEnd) 
         return res.json({ status: 'ok', player: {
             status: connection.player?.state.status,
-            track: null
+            queueTrack: null
         } })
     if(playerState == PlayerState.Playing) 
         return res.json({ status: 'ok', player: {
             status: connection.player?.state.status,
-            track
+            queueTrack
         } })
 })
 
@@ -59,18 +60,18 @@ router.post('/:playerId/tracks/prev', async (req: Request, res: Response) => { /
         return res.status(400).json({ status: 'error', error: 'Player is not connected' })
     if(guild.members.me?.voice.channelId != channel.id)
         return res.status(403).json({ status: 'error', error: 'User is not in same Channel as Bot'})
-    const [playerState, track] = await playPrevTrack(connection, playerId)
+    const [playerState, queueTrack] = await playPrevTrack(connection, playerId)
     if(playerState == PlayerState.NoStream) 
         return res.json({ status: 'error', error: 'Stream Not Found', player: null })
     if(playerState == PlayerState.QueueEnd) 
         return res.json({ status: 'ok', player: {
             status: connection.player?.state.status,
-            track: null
+            queueTrack: null
         } })
     if(playerState == PlayerState.Playing) 
         return res.json({ status: 'ok', player: {
             status: connection.player?.state.status,
-            track
+            queueTrack
         } })
 })
 
@@ -99,18 +100,20 @@ router.post('/:playerId/tracks/:trackId', async (req: Request, res: Response) =>
             console.log('Queue has ended')
         }, onStreamError: () => {
             console.warn('No Stream')
-        }, onNextSong: (track: SoundCloudTrack) => {
-            console.log('Playing next song:', track.name)
+        }, onNextSong: (queueTrack: QueueTrack) => {
+            console.log('Playing next song:', queueTrack.track.title)
         } })
     }
     // 2. if player is not playing anything play added track
     if(connection.player?.state.status == AudioPlayerStatus.Idle){
+        if(connection.trackId == null) connection.trackId = await getTracksLen(playerId)
+        else connection.trackId++
         const playerState = await playTrack(connection, playerId, so_info)
         if(playerState == PlayerState.NoStream)
             return res.status(404).json({ status: 'error', error: 'Stream Not Found' })
     }
     // 3. Add track to queue
-        addTrack(playerId, so_info)
+    await addTrack(playerId, so_info)
     return res.json({ status: 'ok' })
 })
 

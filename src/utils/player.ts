@@ -1,6 +1,7 @@
 import { AudioPlayerStatus, createAudioPlayer, createAudioResource, NoSubscriberBehavior, VoiceConnection } from "@discordjs/voice"
 import playDl, { SoundCloudTrack } from 'play-dl'
 import { getTrackById, getTracksLen } from "./queueTracks"
+import { QueueTrack } from "@/classes/queueTrack"
 
 export enum PlayerState{
     QueueEnd,
@@ -11,7 +12,7 @@ export enum PlayerState{
 function initializePlayer(playerId: string, connection: VoiceConnection, events?: {
     onQueueEnd: () => void,
     onStreamError?: () => void,
-    onNextSong?: (track: SoundCloudTrack) => void
+    onNextSong?: (track: QueueTrack) => void
 }){
     const player = createAudioPlayer({
         behaviors: { noSubscriber: NoSubscriberBehavior.Pause }
@@ -39,39 +40,39 @@ async function playTrack(connection: VoiceConnection, playerId: string, track: S
     })
     if(!stream)
         return PlayerState.NoStream
-    if(connection.trackId == null) connection.trackId = await getTracksLen(playerId)
     const resource = createAudioResource(stream.stream, { inputType: stream.type })
     connection.player?.play(resource)
     return PlayerState.Playing
 }
 
-async function playNextTrack(connection: VoiceConnection, playerId: string): Promise<[PlayerState, SoundCloudTrack|null]>{
+async function playNextTrack(connection: VoiceConnection, playerId: string): Promise<[PlayerState, QueueTrack|null]>{
     if(connection.trackId == null) connection.trackId = 0
-    if(connection.trackId + 1 == await getTracksLen(playerId)) {
+    if(connection.trackId + 1 >= await getTracksLen(playerId)) {
         connection.player?.stop()
         return [PlayerState.QueueEnd, null]
     }
     const trackId = ++connection.trackId
     const queueTrack = await getTrackById(playerId, trackId)
-    if(queueTrack == null)
+    if(queueTrack?.track == null)
         return [PlayerState.QueueEnd, null]
     const trackFetched = await playDl.soundcloud(`https://api.soundcloud.com/tracks/${queueTrack.track.id}`) as SoundCloudTrack
     if(trackFetched == null) 
         return [PlayerState.NoStream, null]
-    return [await playTrack(connection, playerId, trackFetched), trackFetched]
+    return [await playTrack(connection, playerId, trackFetched), queueTrack]
 }
 
-async function playPrevTrack(connection: VoiceConnection, playerId: string): Promise<[PlayerState, SoundCloudTrack|null]>{
+async function playPrevTrack(connection: VoiceConnection, playerId: string): Promise<[PlayerState, QueueTrack|null]>{
     if(connection.trackId == null) connection.trackId = 0
     if(connection.trackId > 0) connection.trackId--;
     const trackId = connection.trackId
     const queueTrack = await getTrackById(playerId, trackId)
-    if(queueTrack == null)
+
+    if(queueTrack?.track == null)
         return [PlayerState.QueueEnd, null]
     const trackFetched = await playDl.soundcloud(`https://api.soundcloud.com/tracks/${queueTrack.track.id}`) as SoundCloudTrack
     if(trackFetched == null) 
         return [PlayerState.NoStream, null]
-    return [await playTrack(connection, playerId, trackFetched), trackFetched]
+    return [await playTrack(connection, playerId, trackFetched), queueTrack]
 }
 
 export {
