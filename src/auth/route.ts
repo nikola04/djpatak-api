@@ -21,13 +21,13 @@ router.post('/token/refresh', async (req, res) => {
             isFromHeader = true
         }
     }
-    if(!refresh_token) return res.cookie('access_token', '', { maxAge: -1 }).status(401).json({ status: 'error', error: 'No Refresh Token Provided' })
+    if(!refresh_token) return res.status(401).json({ status: 'error', error: 'No Refresh Token Provided' })
     const [tokenState, data] = verifyRefreshTokenJWT(refresh_token)
-    if(tokenState != TokenVerifyResponse.VALID || !data) return res.cookie('access_token', '', { maxAge: -1 }).cookie('refresh_token', '', { maxAge: -1}).status(401).json({ status: 'error', error: 'Refresh Token Not Valid' })
+    if(tokenState != TokenVerifyResponse.VALID || !data) return res.status(401).json({ status: 'error', error: 'Refresh Token Not Found' })
     const { refreshToken: jwtRfrshToken, userId } = data as JwtPayload  
     const token = await Token.findOne({ userId }).lean()
-    if(!token) return res.cookie('access_token', '', { maxAge: -1 }).cookie('refresh_token', '', { maxAge: -1}).status(401).json({ status: 'error', error: 'Refresh Token Not Found' })
-    if(!await verifyRefreshToken(jwtRfrshToken, token.refreshToken)) return res.cookie('access_token', '', { maxAge: -1 }).cookie('refresh_token', '', { maxAge: -1}).status(401).json({ status: 'error', error: 'Refresh Token Not Valid' })
+    if(!token) return res.status(401).json({ status: 'error', error: 'Refresh Token Not Found' })
+    if(!await verifyRefreshToken(jwtRfrshToken, token.refreshToken)) return res.status(401).json({ status: 'error', error: 'Refresh Token Not Valid' })
     const { accessToken, refreshToken } = await generateAndSetTokens(res, userId)
     if(isFromHeader) return res.json({ status: 'ok', accessToken, refreshToken })
     return res.json({ status: 'ok' })

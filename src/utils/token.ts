@@ -60,6 +60,7 @@ function verifyRefreshTokenJWT(jwtToken: string): [TokenVerifyResponse, JwtPaylo
 }
 
 async function verifyRefreshToken(token: string, hashedToken: string) {
+    console.log(token, hashedToken)
     return await bcrypt.compare(token, hashedToken);
 }
 
@@ -80,22 +81,23 @@ export default async function generateAndSetTokens(res: Response, userId: string
     res.cookie('access_token', accessToken, { 
         httpOnly: true,
         secure: true,
+        domain: process.env.APP_DOMAIN!,
         sameSite: 'strict',
         maxAge: cookieExpiry
-    })
-    res.cookie('refresh_token', refreshTokenJWT, { 
+    }).cookie('refresh_token', refreshTokenJWT, {
         httpOnly: true,
         secure: true,
+        domain: process.env.APP_DOMAIN!,
         sameSite: 'strict',
         maxAge: cookieExpiry
-    })
-    res.cookie('csrf_token', csrfToken, { 
+    }).cookie('csrf_token', csrfToken, { 
         httpOnly: false,
         secure: true,
+        domain: process.env.APP_DOMAIN!,
         sameSite: 'strict',
         maxAge: cookieExpiry
     })
-    return ({ accessToken, refreshToken, csrfToken })
+    return ({ accessToken, refreshToken: refreshTokenJWT, csrfToken })
 }
 
 export {
