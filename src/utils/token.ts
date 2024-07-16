@@ -60,7 +60,6 @@ function verifyRefreshTokenJWT(jwtToken: string): [TokenVerifyResponse, JwtPaylo
 }
 
 async function verifyRefreshToken(token: string, hashedToken: string) {
-    console.log(token, hashedToken)
     return await bcrypt.compare(token, hashedToken);
 }
 
