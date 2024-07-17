@@ -2,7 +2,7 @@ import { Router } from "express";
 import discordCallback from './callbacks/discord'
 import cookieParser from 'cookie-parser'
 import Token from "../../models/token";
-import generateAndSetTokens, { TokenVerifyResponse, verifyRefreshToken, verifyRefreshTokenJWT } from "../utils/token";
+import generateAndSetTokens, { TokenVerifyResponse, verifyAccessToken, verifyRefreshToken, verifyRefreshTokenJWT } from "../utils/token";
 import { JwtPayload } from "jsonwebtoken";
 
 // INIT
@@ -10,6 +10,30 @@ const router = Router()
 router.use(cookieParser())
 
 router.use('/login/callback/discord', discordCallback)
+
+router.post('/logout', async (req, res) => {
+    const refreshToken = req.cookies.refresh_token
+    const accessToken = req.cookies.access_token
+    let userId = null
+    if(refreshToken){
+        const [tokenState, data] = verifyRefreshTokenJWT(refreshToken)
+        if(data){
+            const jwtData = data as JwtPayload
+            userId = jwtData.userId
+        }
+    }
+    if(!userId && accessToken){
+        const [tokenState, data] = verifyAccessToken(accessToken)
+        if(data){
+            const jwtData = data as JwtPayload
+            userId = jwtData.userId
+        }
+    }
+    res.cookie('access_token', '', { maxAge: -1 }).cookie('refresh_token', '', { maxAge: -1 })
+    if(!userId) return res.json({ status: 'error', error: 'Already signed out' })
+    await Token.deleteOne({ userId })
+    return res.json({ status: 'ok' })
+})
 
 router.post('/token/refresh', async (req, res) => {
     let isFromHeader = false

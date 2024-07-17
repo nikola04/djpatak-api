@@ -1,6 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import { TokenVerifyResponse, verifyAccessToken } from "./token";
 import { JwtPayload } from "jsonwebtoken";
+import { IncomingMessage } from "http";
+import { parse } from "url";
+import cookie from "cookie";
 
 export const authenticate = () => {
     return async (req: Request, res: Response, next: NextFunction) => {
@@ -23,3 +26,14 @@ export const authenticate = () => {
         }
     }
 }
+
+export const authenticateSocketHandshake = (request: IncomingMessage) => {
+    if(!request.url || !request.headers.cookie) return false
+    const { csrf } = parse(request.url, true).query
+    const { access_token: accessToken, csrf_token: csrfToken } = cookie.parse(request.headers.cookie)
+    if(!csrf || !csrfToken || csrfToken != csrf) return false
+    const [resp, data] = verifyAccessToken(accessToken)
+    if(resp != TokenVerifyResponse.VALID) return false
+    const payload = data as JwtPayload
+    return ({ userId: payload.userId })
+} 

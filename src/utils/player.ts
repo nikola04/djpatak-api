@@ -45,6 +45,7 @@ async function playTrack(connection: VoiceConnection, playerId: string, track: S
     return PlayerState.Playing
 }
 
+async function playNextTrack(connection: VoiceConnection, playerId: string): Promise<[PlayerState.Playing, QueueTrack]|[PlayerState.QueueEnd, null]|[PlayerState.NoStream, QueueTrack|null]>;
 async function playNextTrack(connection: VoiceConnection, playerId: string): Promise<[PlayerState, QueueTrack|null]>{
     if(connection.trackId == null) connection.trackId = 0
     if(connection.trackId + 1 >= await getTracksLen(playerId)) {
@@ -61,6 +62,7 @@ async function playNextTrack(connection: VoiceConnection, playerId: string): Pro
     return [await playTrack(connection, playerId, trackFetched), queueTrack]
 }
 
+async function playPrevTrack(connection: VoiceConnection, playerId: string): Promise<[PlayerState.Playing, QueueTrack]|[PlayerState.QueueEnd, null]|[PlayerState.NoStream, QueueTrack|null]>;
 async function playPrevTrack(connection: VoiceConnection, playerId: string): Promise<[PlayerState, QueueTrack|null]>{
     if(connection.trackId == null) connection.trackId = 0
     if(connection.trackId > 0) connection.trackId--;

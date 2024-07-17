@@ -1,14 +1,19 @@
 import express from 'express'
 import mongoose from 'mongoose'
+import { createServer } from 'http';
+import { WebSocketServer } from 'ws';
 import { Client, Events, GatewayIntentBits } from 'discord.js'
 import { createClient } from 'redis';
 import playDl from 'play-dl'
 import cors from 'cors'
 import v1Router from './src/api/v1/route'
 import authRouter from './src/auth/route'
+import { handleSocketServer } from './src/utils/sockets';
 
 // INITIALIZATION
 const app = express()
+const httpServer = createServer(app)
+const wss = new WebSocketServer({ noServer: true, perMessageDeflate: false }) as WebSocketServer
 const botClient = new Client({ 
     intents: [
         GatewayIntentBits.Guilds,
@@ -35,8 +40,10 @@ app.use('/api/v1/', v1Router)
 app.use('/auth', authRouter)
 
 // EVENTS
-console.log("> Starting server...")
-app.listen(process.env.PORT, () => 
+handleSocketServer(httpServer, wss)
+
+console.log("> Starting server ...")
+httpServer.listen(process.env.PORT, () => 
     console.log('✅', `Listening on http://localhost:${process.env.PORT}/`)
 )
 
@@ -66,6 +73,7 @@ playDl.getFreeClientID().then((clientID: string) => {
       }
     })
 })
+
 
 export { 
     botClient,

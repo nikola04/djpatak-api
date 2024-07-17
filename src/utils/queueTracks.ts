@@ -1,16 +1,12 @@
 import { SoundCloudTrack } from "play-dl"
 import { redisClient } from "../../server"
 import { v4 as uuid } from 'uuid'
-import { QueueTrack } from "../classes/queueTrack"
+import { QueueTrack, Track } from "../classes/queueTrack"
 
 const redisTracksId = (playerId: string) => `player:${playerId}#tracks`
 
-/**
- * Add track to redis queue
- * @returns Number of tracks in queue
- */
-async function addTrack(playerId: string, ...tracks: SoundCloudTrack[]){
-    const stringifiedTracks = tracks.map((track) => JSON.stringify({ queueId: uuid(), track: {
+const soundcloudTrackToTrack = (track: any) => {
+    return new Track({
         id: track.id,
         title: track.name,
         permalink: track.permalink,
@@ -23,8 +19,16 @@ async function addTrack(playerId: string, ...tracks: SoundCloudTrack[]){
             permalink: track.user.url,
             thumbnail: track.user.thumbnail
         }
-    }}))
-    return await redisClient.rPush(redisTracksId(playerId), stringifiedTracks)
+    })
+}
+
+async function addTrack(playerId: string, track: SoundCloudTrack): Promise<QueueTrack>;
+async function addTrack(playerId: string, ...tracks: SoundCloudTrack[]): Promise<QueueTrack[]>;
+async function addTrack(playerId: string, ...tracks: SoundCloudTrack[]): Promise<QueueTrack|QueueTrack[]>{
+    const queueTracks: QueueTrack[] = tracks.map((track) => new QueueTrack({ queueId: uuid(), track: soundcloudTrackToTrack(track) }))
+    const stringifiedTracks = queueTracks.map((track) => JSON.stringify(track))
+    await redisClient.rPush(redisTracksId(playerId), stringifiedTracks)
+    return queueTracks.length == 1 ? queueTracks[0] : queueTracks
 }
 
 async function getTracksLen(playerId: string) {
