@@ -42,10 +42,7 @@ app.use('/auth', authRouter)
 // EVENTS
 handleSocketServer(httpServer, wss)
 
-console.log("> Starting server ...")
-httpServer.listen(process.env.PORT, () => 
-    console.log('✅', `Listening on http://localhost:${process.env.PORT}/`)
-)
+console.log("> Starting ...")
 
 botClient.once(Events.ClientReady, readyClient => 
     console.log('✅', `Bot Ready! Logged in as ${readyClient.user.tag}!`)
@@ -66,6 +63,9 @@ redisClient.connect().then(() => {
 }).catch((err) => {
     console.error('❌', 'Redis Not Connected: ', err)
 })
+httpServer.listen(process.env.PORT, () => 
+    console.log('✅', `Listening on http://localhost:${process.env.PORT}/`)
+)
 playDl.getFreeClientID().then((clientID: string) => {
     playDl.setToken({
       soundcloud : {
