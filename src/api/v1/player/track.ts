@@ -96,6 +96,7 @@ router.post('/:playerId/tracks/prev', async (req: Request, res: Response) => { /
 
 router.post('/:playerId/tracks/:trackId', async (req: Request, res: Response) => {
     const userDiscordId = req.userDiscordId
+    const forcePlay = req.query.force
     const playerId = req.params.playerId
     const trackId = req.params.trackId
     try{
@@ -129,13 +130,16 @@ router.post('/:playerId/tracks/:trackId', async (req: Request, res: Response) =>
         // 2. Add track to queue
         const queueTrack = await addTrack(playerId, so_info)
         // 3. if player is not playing anything play added track
-        if(connection.player?.state.status == AudioPlayerStatus.Idle){
+        if(connection.player?.state.status == AudioPlayerStatus.Idle || forcePlay === '1'){
             if(connection.trackId == null) connection.trackId = await getTracksLen(playerId)
             else connection.trackId++
             const playerState = await playTrack(connection, playerId, so_info)
             if(playerState == PlayerState.NoStream)
                 return res.status(404).json({ status: 'error', error: 'Stream Not Found' })
             if(playerState == PlayerState.Playing) emitEvent('now-playing', playerId, queueTrack)
+            if(forcePlay === '1'){
+                // Emit: {USER} skipped and played {SONG}
+            }
         }
         return res.json({ status: 'ok' })
     }catch(err){
