@@ -1,6 +1,6 @@
 import { AudioPlayerStatus, createAudioPlayer, createAudioResource, NoSubscriberBehavior, VoiceConnection } from "@discordjs/voice"
 import playDl, { SoundCloudTrack } from 'play-dl'
-import { getTrackById, getTracksLen } from "./queueTracks"
+import { getTrackByPosition, getTracksLen } from "./queueTracks"
 import { QueueTrack } from "@/classes/queueTrack"
 
 export enum PlayerState{
@@ -53,7 +53,7 @@ async function playNextTrack(connection: VoiceConnection, playerId: string): Pro
         return [PlayerState.QueueEnd, null]
     }
     const trackId = ++connection.trackId
-    const queueTrack = await getTrackById(playerId, trackId)
+    const queueTrack = await getTrackByPosition(playerId, trackId)
     if(queueTrack?.track == null)
         return [PlayerState.QueueEnd, null]
     const trackFetched = await playDl.soundcloud(`https://api.soundcloud.com/tracks/${queueTrack.track.id}`) as SoundCloudTrack
@@ -67,7 +67,7 @@ async function playPrevTrack(connection: VoiceConnection, playerId: string): Pro
     if(connection.trackId == null) connection.trackId = 0
     if(connection.trackId > 0) connection.trackId--;
     const trackId = connection.trackId
-    const queueTrack = await getTrackById(playerId, trackId)
+    const queueTrack = await getTrackByPosition(playerId, trackId)
 
     if(queueTrack?.track == null)
         return [PlayerState.QueueEnd, null]

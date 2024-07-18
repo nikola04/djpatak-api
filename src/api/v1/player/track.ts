@@ -3,7 +3,7 @@ import { botClient } from "../../../../server";
 import { getOrInitVoiceConnection } from "../../../utils/voiceConnection";
 import playDl, { SoundCloudTrack } from 'play-dl'
 import { AudioPlayerStatus, getVoiceConnection } from "@discordjs/voice";
-import { getTrackById, addTrack, getAllTracks, getTracksLen } from "../../../utils/queueTracks";
+import { getTrackByPosition, addTrack, getAllTracks, getTracksLen, getTrackByQueueId } from "../../../utils/queueTracks";
 import { initializePlayer, PlayerState, playNextTrack, playPrevTrack, playTrack } from "../../../utils/player";
 import { QueueTrack } from "../../../classes/queueTrack";
 import { emitEvent } from "../../../utils/sockets";
@@ -94,6 +94,52 @@ router.post('/:playerId/tracks/prev', async (req: Request, res: Response) => { /
     }
 })
 
+router.post('/:playerId/tracks/queue/:queueId', async (req: Request, res: Response) => {
+    const userDiscordId = req.userDiscordId
+    const playerId = req.params.playerId
+    const queueTrackId = req.params.queueId
+    try{
+        if(!userDiscordId) return res.sendStatus(401)
+        const guild = botClient.guilds.cache.get(playerId)
+        if(!guild) 
+            return res.status(404).json({ status: 'error', error: 'No Player Found' })
+        const member = guild.members.cache.get(userDiscordId)
+        if(!member) return res.status(403).json({ status: 'error', error: 'User is not in Guild Voice'})
+        const channel = member.voice.channel
+        if(!channel)
+            return res.status(403).json({ status: 'error', error: 'User Not in Voice Channel' })
+        const { connection, isNew } = await getOrInitVoiceConnection(channel)
+        if(!isNew && guild.members.me?.voice.channelId != channel.id)
+            return res.status(403).json({ status: 'error', error: 'User is not in same Channel as Bot'})
+        const [track, queuePos] = await getTrackByQueueId(playerId, queueTrackId)
+        if(track == null)
+            return res.status(404).json({ status: 'error', error: 'Track Not found in Queue'})
+        const so_info = await playDl.soundcloud(track.track.permalink) as SoundCloudTrack
+        if(!so_info)
+            return res.status(404).json({ status: 'error', error: 'Queue Track doesnt exist any more'})
+        if(!connection.player){
+            initializePlayer(playerId, connection, { onQueueEnd: () => { // should be emitted in live socket connection
+                console.log('Queue has ended')
+                emitEvent('queue-end', playerId)
+            }, onStreamError: () => {
+                console.warn('No Stream')
+            }, onNextSong: (queueTrack: QueueTrack) => {
+                console.log('Playing song:', queueTrack.track.title)
+                emitEvent('now-playing', playerId, queueTrack)
+            } })
+        }
+        connection.trackId = queuePos
+        const playerState = await playTrack(connection, playerId, so_info)
+        if(playerState == PlayerState.NoStream)
+            return res.status(404).json({ status: 'error', error: 'Stream Not Found' })
+        if(playerState == PlayerState.Playing) emitEvent('now-playing', playerId, track)
+        return res.json({ status: 'ok' })
+    }catch(err){
+        console.error(err)
+        return res.status(500).json({ status: 'error', error: err })
+    }
+})
+
 router.post('/:playerId/tracks/:trackId', async (req: Request, res: Response) => {
     const userDiscordId = req.userDiscordId
     const forcePlay = req.query.force
@@ -168,7 +214,7 @@ router.get('/:playerId/tracks/current', async (req: Request, res: Response) => {
             return res.status(400).json({ status: 'error', error: 'Player is not connected' })
         if(connection.trackId == null)
             return res.json({ status: 'ok', queueTrack: null, playerStatus: connection.player?.state.status })
-        const queueTrack = await getTrackById(playerId, connection.trackId)
+        const queueTrack = await getTrackByPosition(playerId, connection.trackId)
         return res.json({ status: 'ok', queueTrack, playerStatus: connection.player?.state.status })
     }catch(err){
         console.error(err)

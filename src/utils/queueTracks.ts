@@ -35,11 +35,19 @@ async function getTracksLen(playerId: string) {
     return await redisClient.lLen(redisTracksId(playerId))
 }
 
-async function getTrackById(playerId: string, trackId: number){
-    const tracks = await redisClient.lRange(redisTracksId(playerId), trackId, trackId)
+async function getTrackByPosition(playerId: string, position: number){
+    const tracks = await redisClient.lRange(redisTracksId(playerId), position, position)
     if(tracks.length < 1) return null
     const queueTrack = new QueueTrack(JSON.parse(tracks[0]))
     return queueTrack
+}
+async function getTrackByQueueId(playerId: string, queueId: string): Promise<[QueueTrack|null, number]>{
+    const tracks = await getAllTracks(playerId)
+    for(let i = 0; i < tracks.length; i++){
+        if(tracks[i].queueId == queueId)
+            return [tracks[i], i]
+    }
+    return [null, -1]
 }
 
 async function getAllTracks(playerId: string){
@@ -51,6 +59,7 @@ async function getAllTracks(playerId: string){
 export {
     getTracksLen,
     addTrack,
-    getTrackById,
+    getTrackByQueueId,
+    getTrackByPosition,
     getAllTracks
 }
