@@ -1,6 +1,6 @@
 import { AudioPlayerStatus, createAudioPlayer, createAudioResource, NoSubscriberBehavior, VoiceConnection } from "@discordjs/voice"
 import playDl, { SoundCloudTrack } from 'play-dl'
-import { getTrackByPosition, getTracksLen } from "./queueTracks"
+import { getTrackByQueueId } from "./queueTracks"
 import { QueueTrack } from "@/classes/queueTrack"
 
 export enum PlayerState{
@@ -33,7 +33,7 @@ function initializePlayer(playerId: string, connection: VoiceConnection, events?
     return player
 }
 
-async function playTrack(connection: VoiceConnection, playerId: string, track: SoundCloudTrack){
+async function playTrack(connection: VoiceConnection, track: SoundCloudTrack){
     const stream = await playDl.stream_from_info(track).catch(err => {
         console.warn('> PlayDL Stream Error:', err)
         return null
@@ -47,34 +47,40 @@ async function playTrack(connection: VoiceConnection, playerId: string, track: S
 
 async function playNextTrack(connection: VoiceConnection, playerId: string): Promise<[PlayerState.Playing, QueueTrack]|[PlayerState.QueueEnd, null]|[PlayerState.NoStream, QueueTrack|null]>;
 async function playNextTrack(connection: VoiceConnection, playerId: string): Promise<[PlayerState, QueueTrack|null]>{
-    if(connection.trackId == null) connection.trackId = 0
-    if(connection.trackId + 1 >= await getTracksLen(playerId)) {
+    const { track, next } = await getTrackByQueueId(playerId, connection.trackId)
+    if(!next && !track){
+        // track is removed from queue
+    }
+    if(!next){
+        connection.trackId = null
         connection.player?.stop()
         return [PlayerState.QueueEnd, null]
     }
-    const trackId = ++connection.trackId
-    const queueTrack = await getTrackByPosition(playerId, trackId)
-    if(queueTrack?.track == null)
-        return [PlayerState.QueueEnd, null]
-    const trackFetched = await playDl.soundcloud(`https://api.soundcloud.com/tracks/${queueTrack.track.id}`) as SoundCloudTrack
-    if(trackFetched == null) 
+    const trackFetched = await playDl.soundcloud(`https://api.soundcloud.com/tracks/${next.track.id}`) as SoundCloudTrack
+    connection.trackId = next.queueId
+    if(trackFetched == null)
         return [PlayerState.NoStream, null]
-    return [await playTrack(connection, playerId, trackFetched), queueTrack]
+    return [await playTrack(connection, trackFetched), next]
 }
 
 async function playPrevTrack(connection: VoiceConnection, playerId: string): Promise<[PlayerState.Playing, QueueTrack]|[PlayerState.QueueEnd, null]|[PlayerState.NoStream, QueueTrack|null]>;
 async function playPrevTrack(connection: VoiceConnection, playerId: string): Promise<[PlayerState, QueueTrack|null]>{
-    if(connection.trackId == null) connection.trackId = 0
-    if(connection.trackId > 0) connection.trackId--;
-    const trackId = connection.trackId
-    const queueTrack = await getTrackByPosition(playerId, trackId)
-
-    if(queueTrack?.track == null)
-        return [PlayerState.QueueEnd, null]
-    const trackFetched = await playDl.soundcloud(`https://api.soundcloud.com/tracks/${queueTrack.track.id}`) as SoundCloudTrack
+    let { prev, track } = await getTrackByQueueId(playerId, connection.trackId)
+    if(connection.trackId && track == null && prev == null){
+        return [PlayerState.NoStream, null]
+        // track doesnt exist in queue any more
+    }
+    if(!track && !prev){
+        return [PlayerState.NoStream, null]
+        // queue is clear cant find prev
+    }
+    if(!prev)
+        prev = track
+    const trackFetched = await playDl.soundcloud(`https://api.soundcloud.com/tracks/${prev?.track.id}`) as SoundCloudTrack
+    connection.trackId = prev?.queueId
     if(trackFetched == null) 
         return [PlayerState.NoStream, null]
-    return [await playTrack(connection, playerId, trackFetched), queueTrack]
+    return [await playTrack(connection, trackFetched), prev]
 }
 
 export {

@@ -41,13 +41,27 @@ async function getTrackByPosition(playerId: string, position: number){
     const queueTrack = new QueueTrack(JSON.parse(tracks[0]))
     return queueTrack
 }
-async function getTrackByQueueId(playerId: string, queueId: string): Promise<[QueueTrack|null, number]>{
+/**
+ * @returns track for track with id equals to queueId, prev as previous track to 'track' and next as next track to 'track'
+ * @returns last song in queue as prev if queueId is null or undefined
+ * @returns null for every property if queueId is not found or Queue is empty
+*/
+async function getTrackByQueueId(playerId: string, queueId?: string|null): Promise<{ track: QueueTrack|null, prev: QueueTrack|null, next: QueueTrack|null }>{
     const tracks = await getAllTracks(playerId)
+    if(queueId === null || queueId === undefined) return ({
+        prev: tracks.length > 0 ? tracks[tracks.length - 1] : null,
+        track: null,
+        next: null
+    })
     for(let i = 0; i < tracks.length; i++){
         if(tracks[i].queueId == queueId)
-            return [tracks[i], i]
+            return ({
+                prev: i > 0 ? tracks[i-1] : null,
+                track: tracks[i],
+                next: i + 1 < tracks.length ? tracks[i+1] : null
+            })
     }
-    return [null, -1]
+    return ({ prev: null, track: null, next: null })
 }
 
 async function getAllTracks(playerId: string){

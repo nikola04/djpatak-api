@@ -2,12 +2,11 @@ import { Request, Response, Router } from "express";
 import { botClient } from "../../../../../../server";
 import { getOrInitVoiceConnection } from "../../../../../utils/voiceConnection";
 import playDl, { SoundCloudTrack } from 'play-dl'
-import { AudioPlayerStatus, getVoiceConnection } from "@discordjs/voice";
-import { getTrackByPosition, addTrack, getAllTracks, getTracksLen, getTrackByQueueId } from "../../../../../utils/queueTracks";
-import { initializePlayer, PlayerState, playNextTrack, playPrevTrack, playTrack } from "../../../../../utils/player";
+import { AudioPlayerStatus } from "@discordjs/voice";
+import { addTrack } from "../../../../../utils/queueTracks";
+import { initializePlayer, PlayerState, playTrack } from "../../../../../utils/player";
 import { QueueTrack } from "../../../../../classes/queueTrack";
 import { emitEvent } from "../../../../../utils/sockets";
-import queueRouter from '../queue'
 
 // INIT
 const router = Router({ mergeParams: true })
@@ -50,9 +49,8 @@ router.post('/:trackPermalink', async (req: Request, res: Response) => {
         emitEvent('new-queue-song', playerId, queueTrack)
         // 3. if player is not playing anything play added track
         if(connection.player?.state.status == AudioPlayerStatus.Idle || forcePlay === '1'){
-            if(connection.trackId == null) connection.trackId = await getTracksLen(playerId)
-            else connection.trackId++
-            const playerState = await playTrack(connection, playerId, so_info)
+            connection.trackId = queueTrack.queueId
+            const playerState = await playTrack(connection, so_info)
             if(playerState == PlayerState.NoStream)
                 return res.status(404).json({ status: 'error', error: 'Stream Not Found' })
             if(playerState == PlayerState.Playing) emitEvent('now-playing', playerId, queueTrack)
