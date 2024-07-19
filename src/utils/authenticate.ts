@@ -31,7 +31,7 @@ export const authenticateSocketHandshake = (request: IncomingMessage) => {
     if(!request.url || !request.headers.cookie) return false
     const { csrf } = parse(request.url, true).query
     const { access_token: accessToken, csrf_token: csrfToken } = cookie.parse(request.headers.cookie)
-    if(!csrf || !csrfToken || csrfToken != csrf) return false
+    if(!accessToken || !csrf || !csrfToken || csrfToken != csrf) return false
     const [resp, data] = verifyAccessToken(accessToken)
     if(resp != TokenVerifyResponse.VALID) return false
     const payload = data as JwtPayload

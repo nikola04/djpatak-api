@@ -1,5 +1,5 @@
 import { Request, Response, Router } from "express";
-import trackRoute from './track'
+import trackRoute from './tracks'
 import volumeRoute from './volume'
 import Account from "../../../../models/account";
 
@@ -15,7 +15,7 @@ router.use(async (req: Request, res: Response, next) => {
     req.userDiscordId = account.providerAccountId
     next()
 })
-router.use('/', trackRoute)
-router.use('/', volumeRoute)
+router.use('/:playerId', trackRoute)
+router.use('/:playerId', volumeRoute)
 
 export default router

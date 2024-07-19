@@ -1,7 +1,7 @@
 import { Router } from "express";
 
 // INIT
-const router = Router()
+const router = Router({ mergeParams: true })
 
 // ROUTES
 
