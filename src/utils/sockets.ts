@@ -49,8 +49,10 @@ function sendMessageToPlayerSockets(playerId: string, message: string){
 
 function subscribeSocket(playerId: string, socketId: string){
     let playerSockets;
-    if(!(playerSockets = playerSocketsMap.get(playerId))) playerSocketsMap.set(playerId, [socketId])
-    else playerSocketsMap.set(playerId, [...playerSockets, socketId])
+    if(!(playerSockets = playerSocketsMap.get(playerId)))
+        playerSocketsMap.set(playerId, [socketId])
+    else if(!playerSockets.includes(socketId))
+        playerSocketsMap.set(playerId, [...playerSockets, socketId])
     return socketId
 }
 function unsubscribeSocket(socketId: string){
