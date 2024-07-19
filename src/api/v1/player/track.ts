@@ -175,6 +175,7 @@ router.post('/:playerId/tracks/:trackId', async (req: Request, res: Response) =>
         }
         // 2. Add track to queue
         const queueTrack = await addTrack(playerId, so_info)
+        emitEvent('new-queue-song', playerId, queueTrack)
         // 3. if player is not playing anything play added track
         if(connection.player?.state.status == AudioPlayerStatus.Idle || forcePlay === '1'){
             if(connection.trackId == null) connection.trackId = await getTracksLen(playerId)
