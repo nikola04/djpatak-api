@@ -52,13 +52,14 @@ router.post('/:trackPermalink', async (req: Request, res: Response) => {
             connection.trackId = queueTrack.queueId
             const playerState = await playTrack(connection, so_info)
             if(playerState == PlayerState.NoStream)
-                return res.status(404).json({ status: 'error', error: 'Stream Not Found' })
+                return res.status(404).json({ status: 'error', playerStatus: 'paused', error: 'Stream Not Found' })
             if(playerState == PlayerState.Playing) emitEvent('now-playing', playerId, queueTrack)
             if(forcePlay === '1'){
                 // Emit: {USER} skipped and played {SONG}
             }
         }
-        return res.json({ status: 'ok' })
+        const playerStatus = connection.player?.state.status == AudioPlayerStatus.Playing || connection.player?.state.status == AudioPlayerStatus.Buffering ? 'playing' : 'paused'
+        return res.json({ status: 'ok', playerStatus})
     }catch(err){
         console.error(err)
         return res.status(500).json({ status: 'error', error: err })

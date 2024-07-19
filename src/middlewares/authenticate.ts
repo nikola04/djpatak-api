@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { TokenVerifyResponse, verifyAccessToken } from "./token";
+import { TokenVerifyResponse, verifyAccessToken } from "../utils/token";
 import { JwtPayload } from "jsonwebtoken";
 import { IncomingMessage } from "http";
 import { parse } from "url";

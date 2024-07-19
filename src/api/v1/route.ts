@@ -2,7 +2,7 @@ import { Router } from "express";
 import tracksRoute from './tracks/'
 import playerRoute from './player/'
 import usersRoute from './user/'
-import { authenticate } from "../../utils/authenticate";
+import { authenticate } from '../../middlewares/authenticate'
 import cookieParser from "cookie-parser";
 
 // INIT

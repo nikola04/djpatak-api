@@ -1,6 +1,6 @@
 import { Request, Response, Router } from "express";
 import trackRoute from './tracks'
-import volumeRoute from './volume'
+import controllsRoute from './controlls'
 import Account from "../../../../models/account";
 
 // INIT
@@ -16,6 +16,6 @@ router.use(async (req: Request, res: Response, next) => {
     next()
 })
 router.use('/:playerId', trackRoute)
-router.use('/:playerId', volumeRoute)
+router.use('/:playerId', controllsRoute)
 
 export default router

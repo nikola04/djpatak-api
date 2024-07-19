@@ -1,6 +1,6 @@
 import { Server } from 'http'
 import { v4 as uuid } from 'uuid'
-import { authenticateSocketHandshake } from './authenticate'
+import { authenticateSocketHandshake } from '../middlewares/authenticate'
 import { WebSocket, WebSocketServer } from 'ws'
 import { QueueTrack } from '@/classes/queueTrack'
 
