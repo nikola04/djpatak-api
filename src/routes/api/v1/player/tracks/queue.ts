@@ -1,13 +1,13 @@
 import { Request, Response, Router } from "express";
-import { botClient } from "../../../../../server";
-import { getOrInitVoiceConnection } from "../../../../utils/voiceConnection";
+import { botClient } from "../../../../../../server";
+import { getOrInitVoiceConnection } from "../../../../../utils/voiceConnection";
 import playDl, { SoundCloudTrack } from 'play-dl'
 import { AudioPlayerStatus, getVoiceConnection } from "@discordjs/voice";
-import { getAllTracks, getTrackByQueueId } from "../../../../utils/queueTracks";
-import { initializePlayer, PlayerState, playNextTrack, playPrevTrack, playTrack } from "../../../../utils/player";
-import { QueueTrack } from "../../../../classes/queueTrack";
-import { emitEvent } from "../../../../utils/sockets";
-import { isUserInGuildVoice } from "../../../../middlewares/user";
+import { getAllTracks, getTrackByQueueId } from "../../../../../utils/queueTracks";
+import { initializePlayer, PlayerState, playNextTrack, playPrevTrack, playTrack } from "../../../../../utils/player";
+import { QueueTrack } from "../../../../../classes/queueTrack";
+import { emitEvent } from "../../../../../utils/sockets";
+import { isUserInGuildVoice } from "../../../../../middlewares/user";
 
 const router = Router({ mergeParams: true })
 

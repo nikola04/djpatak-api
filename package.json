@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "main": "dist/server.js",
   "scripts": {
-    "build": "tsc",
+    "test": "jest --watchAll --verbose",
     "dev": "node --env-file=.env.local --import=tsx --watch server.ts",
+    "build": "tsc",
     "start": "node --env-file=.env.production dist/server.js"
   },
   "keywords": [],
@@ -24,6 +25,7 @@
     "opusscript": "^0.0.8",
     "play-dl": "^1.9.7",
     "redis": "^4.6.15",
+    "ts-jest": "^29.2.3",
     "tweetnacl": "^1.0.3",
     "uuid": "^10.0.0",
     "ws": "^8.18.0"
@@ -34,10 +36,12 @@
     "@types/cookie-parser": "^1.4.7",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
+    "@types/jest": "^29.5.12",
     "@types/jsonwebtoken": "^9.0.6",
     "@types/node": "^20.14.10",
     "@types/uuid": "^10.0.0",
     "@types/ws": "^8.5.11",
+    "jest": "^29.7.0",
     "nodemon": "^3.1.4",
     "ts-node": "^10.9.2",
     "tsx": "^4.16.2",

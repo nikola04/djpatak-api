@@ -1,4 +1,7 @@
 {
+  "typeAcquisition": {
+    "include": ["jest"]
+  },
   "compilerOptions": {
     "target": "es6",
     "module": "commonjs",
@@ -24,6 +27,6 @@
     "types/main.d.ts",
     "server.ts"
   ],
-  "include": ["./types/*.ts", "src/*", "**/*.ts"],
+  "include": ["./types/*.ts", "src/*", "**/*.ts", "src/routes/api", "src/routes/auth"],
   "exclude": ["node_modules", "**/*.spec.ts"]
 }

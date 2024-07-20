@@ -6,8 +6,8 @@ import { Client, Events, GatewayIntentBits } from 'discord.js'
 import { createClient } from 'redis';
 import playDl from 'play-dl'
 import cors from 'cors'
-import v1Router from './src/api/v1/route'
-import authRouter from './src/auth/route'
+import v1Router from './src/routes/api/v1/route'
+import authRouter from './src/routes/auth/route'
 import { handleSocketServer } from './src/utils/sockets';
 
 // INITIALIZATION

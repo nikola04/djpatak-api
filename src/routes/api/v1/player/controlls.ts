@@ -1,6 +1,6 @@
 import { Request, Response, Router } from "express";
-import { isUserInGuildVoice } from "../../../middlewares/user";
-import { botClient } from "../../../../server";
+import { isUserInGuildVoice } from "../../../../middlewares/user";
+import { botClient } from "../../../../../server";
 import { AudioPlayerStatus, getVoiceConnection } from "@discordjs/voice";
 import { emitEvent } from "@/utils/sockets";
 

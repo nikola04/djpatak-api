@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express"
-import Account from "../../../models/account"
-import User from "../../../models/user"
-import generateAndSetToken from "../../utils/token"
+import Account from "../../../../models/account"
+import User from "../../../../models/user"
+import generateAndSetToken from "../../../utils/token"
 const router = Router()
 
 const discordScopes = ['identify', 'guilds', 'email']
