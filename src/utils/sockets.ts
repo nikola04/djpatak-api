@@ -11,7 +11,7 @@ export function handleSocketServer(httpServer: Server, wss: WebSocketServer){
     httpServer.on('upgrade', (req, socket, head) => {
         const auth = authenticateSocketHandshake(req)
         if(!auth){
-            socket.write('HTTP/1.1 401 Unathorized\r\n\r\n')
+            socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n')
             socket.destroy()
             return
         }
