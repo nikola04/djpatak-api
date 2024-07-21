@@ -27,6 +27,6 @@
   "files": [
     "types/main.d.ts"
   ],
-  "include": ["./types/*.d.ts", "src/*", "**/*.ts"],
+  "include": ["types/*.d.ts", "src/*"],
   "exclude": ["node_modules", "**/*.spec.ts", "dist"]
 }

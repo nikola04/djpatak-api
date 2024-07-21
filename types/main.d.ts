@@ -8,7 +8,7 @@ import { PlayerPrefrences } from './player';
 declare module '@discordjs/voice' {
     interface VoiceConnection {
         player?: AudioPlayer;
-        playerPreferences: PlayerPrefrences;
+        playerPreferences?: PlayerPrefrences;
         trackId?: string|null;
     }
 }

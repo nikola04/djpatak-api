@@ -1,5 +1,5 @@
 import { Request, Response, Router } from "express";
-import { botClient } from "../../../../../server";
+import { botClient } from "@/server";
 import { getOrInitVoiceConnection } from "@/utils/voiceConnection";
 import playDl, { SoundCloudTrack } from 'play-dl'
 import { AudioPlayerStatus, getVoiceConnection } from "@discordjs/voice";

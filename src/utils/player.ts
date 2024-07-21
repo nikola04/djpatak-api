@@ -2,12 +2,17 @@ import { AudioPlayerStatus, createAudioPlayer, createAudioResource, NoSubscriber
 import playDl, { SoundCloudTrack } from 'play-dl'
 import { getTrackByQueueId } from "./queueTracks"
 import { QueueTrack } from "@/classes/queueTrack"
+import { PlayerPrefrences } from "types/player"
 
 export enum PlayerState{
     QueueEnd,
     NoStream,
     Playing
 }
+
+export const initializePlayerPreferences = (): PlayerPrefrences => ({
+    repeat: "off", // default value
+})
 
 function initializePlayer(playerId: string, connection: VoiceConnection, events?: {
     onQueueEnd: () => void,
@@ -30,6 +35,7 @@ function initializePlayer(playerId: string, connection: VoiceConnection, events?
     })
     connection.subscribe(player)
     connection.player = player
+    connection.playerPreferences = initializePlayerPreferences()
     return player
 }
 

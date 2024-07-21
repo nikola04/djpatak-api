@@ -3,6 +3,7 @@ import { v4 as uuid } from 'uuid'
 import { authenticateSocketHandshake } from '../middlewares/authenticate'
 import { WebSocket, WebSocketServer } from 'ws'
 import { QueueTrack } from '@/classes/queueTrack'
+import { Repeat } from 'types/player'
 
 const playerSocketsMap = new Map<string, string[]>()
 const socketsMap = new Map<string, WebSocket>()
@@ -77,9 +78,10 @@ export function deleteSocket(socketId: string){
     socketsMap.delete(socketId)
 }
 
-type EventType = 'now-playing'|'new-queue-song'|'queue-end'|'pause'|'resume'
+type EventType = 'now-playing'|'new-queue-song'|'queue-end'|'pause'|'resume'|'repeat'
 export function emitEvent(event: 'now-playing'|'new-queue-song', playerId: string, track: QueueTrack): void;
-export function emitEvent(event: Exclude<EventType, 'now-playing'>, playerId: string): void;
+export function emitEvent(event: 'repeat', playerId: string, repeat: Repeat): void;
+export function emitEvent(event: Exclude<EventType, 'now-playing'|'new-queue-song'|'repeat'>, playerId: string): void;
 export function emitEvent(event: EventType, playerId: string, data?: any): void{
     sendMessageToPlayerSockets(playerId, JSON.stringify({
         event,
