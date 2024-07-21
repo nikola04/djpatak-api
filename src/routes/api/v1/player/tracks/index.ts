@@ -7,7 +7,7 @@ const router = Router({ mergeParams: true })
 
 // ROUTES
 
-router.use('/tracks/queue', queueRouter)
-router.use('/tracks/soundcloud', soundCloudRouter)
+router.use('/queue', queueRouter)
+router.use('/soundcloud', soundCloudRouter)
 
 export default router

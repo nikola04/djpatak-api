@@ -78,7 +78,7 @@ export function deleteSocket(socketId: string){
     socketsMap.delete(socketId)
 }
 
-type EventType = 'now-playing'|'new-queue-song'|'queue-end'|'pause'|'resume'|'repeat'
+type EventType = 'now-playing'|'new-queue-song'|'queue-end'|'pause'|'resume'|'repeat'|'stop'
 export function emitEvent(event: 'now-playing'|'new-queue-song', playerId: string, track: QueueTrack): void;
 export function emitEvent(event: 'repeat', playerId: string, repeat: Repeat): void;
 export function emitEvent(event: Exclude<EventType, 'now-playing'|'new-queue-song'|'repeat'>, playerId: string): void;

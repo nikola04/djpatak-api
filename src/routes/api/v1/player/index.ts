@@ -15,7 +15,7 @@ router.use(async (req: Request, res: Response, next) => {
     req.userDiscordId = account.providerAccountId
     next()
 })
-router.use('/:playerId', trackRoute)
+router.use('/:playerId/tracks/', trackRoute)
 router.use('/:playerId', controllsRoute)
 
 export default router

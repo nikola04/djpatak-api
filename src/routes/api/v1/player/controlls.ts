@@ -56,6 +56,29 @@ router.post('/resume', async (req: Request, res: Response) => {
     }
 })
 
+router.post('/stop', async (req: Request, res: Response) => {
+    const playerId = req.params.playerId
+    const userDiscordId = req.userDiscordId
+    try{
+        const guild = botClient.guilds.cache.get(playerId)!
+        const member = guild.members.cache.get(userDiscordId!)!
+        const channel = member.voice.channel!
+        const connection = getVoiceConnection(playerId)
+        if(!connection || !connection.player)
+            return res.status(400).json({ status: 'error', error: 'Player is not connected' })
+        if(guild.members.me?.voice.channelId != channel.id)
+            return res.status(403).json({ status: 'error', error: 'User is not in same Channel as Bot'})
+        if(connection.player.state.status != AudioPlayerStatus.Paused) return res.json({ status: 'error', error: 'Player is not paused' })
+        connection.player.stop()
+        connection.trackId = null
+        emitEvent('stop', playerId)
+        return res.json({ status: 'ok' })
+    }catch(err){
+        console.error(err)
+        return res.status(500).json({ status: 'error', error: err })
+    }
+})
+
 router.post('/repeat', async (req: Request, res: Response) => {
     const { set: newRepeat } = req.query
     const playerId = req.params.playerId

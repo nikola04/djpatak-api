@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "dist/server.js",
   "scripts": {
-    "test": "jest --watch --verbose",
+    "test": "jest --watchAll --verbose",
     "dev": "node --env-file=.env.local --import=tsx --watch src/server.ts",
     "build": "tsc",
     "start": "node --require module-alias/register --env-file=.env.production dist/server.js"
