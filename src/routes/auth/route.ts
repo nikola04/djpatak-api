@@ -1,8 +1,8 @@
 import { Router } from "express";
 import discordCallback from './callbacks/discord'
 import cookieParser from 'cookie-parser'
-import Token from "../../../models/token";
-import generateAndSetTokens, { TokenVerifyResponse, verifyAccessToken, verifyRefreshToken, verifyRefreshTokenJWT } from "../../utils/token";
+import Token from "@/models/token.model";
+import generateAndSetTokens, { TokenVerifyResponse, verifyAccessToken, verifyRefreshToken, verifyRefreshTokenJWT } from "@/utils/token";
 import { JwtPayload } from "jsonwebtoken";
 
 // INIT

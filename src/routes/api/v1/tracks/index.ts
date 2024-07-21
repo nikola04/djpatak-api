@@ -1,4 +1,4 @@
-import SoundCloud from "../../../../utils/soundcloud";
+import SoundCloud from "@/utils/soundcloud";
 import { Router } from "express";
 
 const router = Router()

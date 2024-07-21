@@ -37,8 +37,13 @@ export function handleSocketServer(httpServer: Server, wss: WebSocketServer){
     })
 }
 
-function sendMessageToPlayerSockets(playerId: string, message: string){
+export function getSubscribedSockets(playerId: string){
     const socketIds = playerSocketsMap.get(playerId)
+    return socketIds ?? null
+}
+
+export function sendMessageToPlayerSockets(playerId: string, message: string){
+    const socketIds = getSubscribedSockets(playerId)
     if(!socketIds) return
     socketIds.forEach((socketId) => {
         const socket = socketsMap.get(socketId)
@@ -47,7 +52,7 @@ function sendMessageToPlayerSockets(playerId: string, message: string){
     })
 }
 
-function subscribeSocket(playerId: string, socketId: string){
+export function subscribeSocket(playerId: string, socketId: string){
     let playerSockets;
     if(!(playerSockets = playerSocketsMap.get(playerId)))
         playerSocketsMap.set(playerId, [socketId])
@@ -55,13 +60,13 @@ function subscribeSocket(playerId: string, socketId: string){
         playerSocketsMap.set(playerId, [...playerSockets, socketId])
     return socketId
 }
-function unsubscribeSocket(socketId: string){
+export function unsubscribeSocket(socketId: string){
     playerSocketsMap.forEach((playerSockets, playerId) => {
         if(playerSockets.includes(socketId)) playerSocketsMap.set(playerId, playerSockets.filter((socket) => socket != socketId))
     })
 }
 
-function deleteSocket(socketId: string){
+export function deleteSocket(socketId: string){
     for(const data of playerSocketsMap){
         if(data[1].includes(socketId)){
             if(data[1].length == 1) playerSocketsMap.delete(data[0])

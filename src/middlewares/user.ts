@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express"
-import { botClient } from "../../server"
+import { botClient } from "../server"
 
 export const isUserInGuildVoice = () => {
     return (req: Request, res: Response, next: NextFunction) => {

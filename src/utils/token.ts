@@ -3,7 +3,7 @@ import crypto from 'crypto'
 import bcrypt from 'bcrypt'
 import fs from 'fs'
 import path from 'path'
-import Token from '../../models/token'
+import Token from '@/models/token.model'
 import { Response } from 'express'
 const privateKey = fs.readFileSync(path.join('keys', 'jwt.key'), 'utf8')
 const publicKey = fs.readFileSync(path.join('keys', 'jwt.key.pub'), 'utf8')
@@ -14,10 +14,10 @@ export enum TokenVerifyResponse{
     EXPIRED,
 }
 
-function generateAccessTokenJWT(userId: string){
+export function generateAccessTokenJWT(userId: string, expiresIn: number = 600){
     try{
         return jwt.sign({ userId }, privateKey, {
-            expiresIn: 10 * 60, // 10 minutes
+            expiresIn,
             algorithm: 'RS256'
         })
     }catch(err){
@@ -34,14 +34,14 @@ function verifyAccessToken(jwtToken: string): [TokenVerifyResponse, JwtPayload|s
     }
 }
 
-async function generateRefreshToken(){
+export async function generateRefreshToken(){
     const refreshToken = crypto.randomBytes(64).toString('hex')
     return ({ hashedRefreshToken: await bcrypt.hash(refreshToken, 10), refreshToken })
 }
-function generateRefreshTokenJWT(token: string, userId: string){
+export function generateRefreshTokenJWT(token: string, userId: string, expiresIn: number = 15811200000){
     try{
         return jwt.sign({ userId, refreshToken: token }, privateKey, {
-            expiresIn: 15811200000, // 10 minutes
+            expiresIn,
             algorithm: 'RS256'
         })
     }catch(err){
@@ -67,7 +67,7 @@ function generateCSRF(){
     return crypto.randomBytes(64).toString('hex')
 }
 
-export default async function generateAndSetTokens(res: Response, userId: string) {
+async function generateTokens(userId: string){
     const accessToken = generateAccessTokenJWT(userId)
     const { refreshToken, hashedRefreshToken } = await generateRefreshToken()
     const refreshTokenJWT = generateRefreshTokenJWT(refreshToken, userId)
@@ -76,6 +76,11 @@ export default async function generateAndSetTokens(res: Response, userId: string
         userId: userId,
         refreshToken: hashedRefreshToken
     }, { upsert: true })
+    return ({ accessToken, refreshToken: refreshTokenJWT, csrfToken })
+}
+
+export default async function generateAndSetTokens(res: Response, userId: string) {
+    const { accessToken, refreshToken, csrfToken } = await generateTokens(userId)
     const cookieExpiry = 15811200_000 // 6 months
     res.cookie('access_token', accessToken, { 
         httpOnly: true,
@@ -83,7 +88,7 @@ export default async function generateAndSetTokens(res: Response, userId: string
         domain: process.env.APP_DOMAIN!,
         sameSite: 'strict',
         maxAge: cookieExpiry
-    }).cookie('refresh_token', refreshTokenJWT, {
+    }).cookie('refresh_token', refreshToken, {
         httpOnly: true,
         secure: true,
         domain: process.env.APP_DOMAIN!,
@@ -96,7 +101,7 @@ export default async function generateAndSetTokens(res: Response, userId: string
         sameSite: 'strict',
         maxAge: cookieExpiry
     })
-    return ({ accessToken, refreshToken: refreshTokenJWT, csrfToken })
+    return ({ accessToken, refreshToken, csrfToken })
 }
 
 export {

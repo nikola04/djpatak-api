@@ -1,15 +1,14 @@
 import '@discordjs/voice';
 import 'express'
 import 'ws'
-import WebSocket, { WebSocketServer } from 'ws';
 import { IncomingMessage } from 'http';
-import { Request } from 'express';
-import { AudioPlayer, VoiceConnection } from '@discordjs/voice';
-import { SoundCloudTrack } from 'play-dl';
+import { AudioPlayer } from '@discordjs/voice';
+import { PlayerPrefrences } from './player';
 
 declare module '@discordjs/voice' {
     interface VoiceConnection {
         player?: AudioPlayer;
+        playerPreferences: PlayerPrefrences;
         trackId?: string|null;
     }
 }

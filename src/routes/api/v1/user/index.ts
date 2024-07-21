@@ -1,7 +1,7 @@
 import { Request, Response, Router } from "express";
-import User, { IUser } from "../../../../../models/user";
-import { getDiscordAccount, PartialDiscordGuild } from "../../../../utils/discord";
-import { botClient } from "../../../../../server";
+import User, { IUser } from "@/models/user.model";
+import { getDiscordAccount, PartialDiscordGuild } from "@/utils/discord";
+import { botClient } from "../../../../server";
 
 // INIT
 const router = Router()

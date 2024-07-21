@@ -1,12 +1,12 @@
 import { Request, Response, Router } from "express";
-import { botClient } from "../../../../../../../server";
-import { getOrInitVoiceConnection } from "../../../../../../utils/voiceConnection";
+import { botClient } from "../../../../../../server";
+import { getOrInitVoiceConnection } from "@/utils/voiceConnection";
 import playDl, { SoundCloudTrack } from 'play-dl'
 import { AudioPlayerStatus } from "@discordjs/voice";
-import { addTrack } from "../../../../../../utils/queueTracks";
-import { initializePlayer, PlayerState, playTrack } from "../../../../../../utils/player";
-import { QueueTrack } from "../../../../../../classes/queueTrack";
-import { emitEvent } from "../../../../../../utils/sockets";
+import { addTrack } from "@/utils/queueTracks";
+import { initializePlayer, PlayerState, playTrack } from "@/utils/player";
+import { QueueTrack } from "@/classes/queueTrack";
+import { emitEvent } from "@/utils/sockets";
 
 // INIT
 const router = Router({ mergeParams: true })

@@ -6,9 +6,9 @@ import { Client, Events, GatewayIntentBits } from 'discord.js'
 import { createClient } from 'redis';
 import playDl from 'play-dl'
 import cors from 'cors'
-import v1Router from './src/routes/api/v1/route'
-import authRouter from './src/routes/auth/route'
-import { handleSocketServer } from './src/utils/sockets';
+import v1Router from '@/routes/api/v1/route'
+import authRouter from '@/routes/auth/route'
+import { handleSocketServer } from '@/utils/sockets';
 
 // INITIALIZATION
 const app = express()
@@ -74,7 +74,8 @@ playDl.getFreeClientID().then((clientID: string) => {
     })
 })
 
-export { 
+export {
+    app,
     botClient,
     redisClient
 }

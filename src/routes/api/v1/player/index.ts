@@ -1,7 +1,7 @@
 import { Request, Response, Router } from "express";
 import trackRoute from './tracks'
 import controllsRoute from './controlls'
-import Account from "../../../../../models/account";
+import Account from "@/models/account.model";
 
 // INIT
 const router = Router()

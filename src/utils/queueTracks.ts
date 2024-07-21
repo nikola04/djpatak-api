@@ -1,5 +1,5 @@
 import { SoundCloudTrack } from "play-dl"
-import { redisClient } from "../../server"
+import { redisClient } from "../server"
 import { v4 as uuid } from 'uuid'
 import { QueueTrack, Track } from "../classes/queueTrack"
 
