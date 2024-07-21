@@ -2,8 +2,8 @@ import { Server } from 'http'
 import { v4 as uuid } from 'uuid'
 import { authenticateSocketHandshake } from '../middlewares/authenticate'
 import { WebSocket, WebSocketServer } from 'ws'
-import { QueueTrack } from '@/classes/queueTrack'
 import { Repeat } from 'types/player'
+import { QueueTrack } from 'types/queue'
 
 const playerSocketsMap = new Map<string, string[]>()
 const socketsMap = new Map<string, WebSocket>()

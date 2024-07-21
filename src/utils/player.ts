@@ -1,8 +1,8 @@
 import { AudioPlayerStatus, createAudioPlayer, createAudioResource, NoSubscriberBehavior, VoiceConnection } from "@discordjs/voice"
 import playDl, { SoundCloudTrack } from 'play-dl'
 import { getTrackByQueueId } from "./queueTracks"
-import { QueueTrack } from "@/classes/queueTrack"
 import { PlayerPrefrences } from "types/player"
+import { QueueTrack } from "types/queue"
 
 export enum PlayerState{
     QueueEnd,

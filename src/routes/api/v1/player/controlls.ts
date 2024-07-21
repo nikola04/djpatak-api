@@ -1,10 +1,10 @@
 import { Request, Response, Router } from "express";
 import { isUserInGuildVoice } from "@/middlewares/user";
-import { botClient } from "../../../../server";
+import { botClient } from "@/server";
 import { AudioPlayerStatus, getVoiceConnection } from "@discordjs/voice";
 import { emitEvent } from "@/utils/sockets";
-import { Repeat } from "types/player";
 import { initializePlayerPreferences } from "@/utils/player";
+import { isRepeat } from "@/validators/playerPreferences";
 
 // INIT
 const router = Router({ mergeParams: true })
@@ -56,9 +56,6 @@ router.post('/resume', async (req: Request, res: Response) => {
     }
 })
 
-const isRepeat = (value: any): value is Repeat => {
-    return value === "track" || value === "queue" || value === "off"
-}
 router.post('/repeat', async (req: Request, res: Response) => {
     const { set: newRepeat } = req.query
     const playerId = req.params.playerId

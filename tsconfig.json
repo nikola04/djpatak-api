@@ -27,6 +27,6 @@
   "files": [
     "types/main.d.ts"
   ],
-  "include": ["types/*.d.ts", "src/*"],
+  "include": ["types/*.d.ts", "src/*", "src/validators/*"],
   "exclude": ["node_modules", "**/*.spec.ts", "dist"]
 }

@@ -1,4 +1,4 @@
-import { Track } from "../classes/queueTrack";
+import { Track } from "types/queue";
 
 interface SearchOptions{
     limit?: number,
