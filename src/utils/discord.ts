@@ -33,7 +33,7 @@ async function refreshDiscordTokens(account: IAccount): Promise<IAccount|null>{
         },
         body: params.toString()
     }).then(res => res.json())
-    .catch(err => null)
+    .catch(() => null)
     if(!oAuthData || !oAuthData.access_token) return null
     return await Account.findOneAndUpdate({ _id: account._id }, { $set: {
         providerAccountScopes: oAuthData.scope,

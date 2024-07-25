@@ -16,14 +16,14 @@ router.post('/logout', async (req, res) => {
     const accessToken = req.cookies.access_token
     let userId = null
     if(refreshToken){
-        const [tokenState, data] = verifyRefreshTokenJWT(refreshToken)
+        const [_, data] = verifyRefreshTokenJWT(refreshToken)
         if(data){
             const jwtData = data as JwtPayload
             userId = jwtData.userId
         }
     }
     if(!userId && accessToken){
-        const [tokenState, data] = verifyAccessToken(accessToken)
+        const [_, data] = verifyAccessToken(accessToken)
         if(data){
             const jwtData = data as JwtPayload
             userId = jwtData.userId

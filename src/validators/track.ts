@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { QueueTrack, SoundCloudUser, Track } from "types/queue";
 
 export const isSoundCloudUser = (obj: any): obj is SoundCloudUser => {

@@ -30,7 +30,7 @@ router.get('/guilds', async (req: Request, res: Response) => {
             Authorization: `Bearer ${account.accessToken}`
         }
     }).then(res => res.json())
-    .catch(err => null)
+    .catch(() => null)
     const botGuilds = botClient.guilds.cache
     if(!Array.isArray(userResponse)) {
         if(userResponse.retry_after)
@@ -39,7 +39,7 @@ router.get('/guilds', async (req: Request, res: Response) => {
     }
     const userGuilds = userResponse as PartialDiscordGuild[]
     if(botGuilds.size == 0) return res.json([]);
-    const userGuildsWithBot = userGuilds.filter((userGuild: any) => botGuilds.has(userGuild.id))
+    const userGuildsWithBot = userGuilds.filter((userGuild: PartialDiscordGuild) => botGuilds.has(userGuild.id))
     return res.json({ status: 'ok' , results: userGuildsWithBot})
 })
 

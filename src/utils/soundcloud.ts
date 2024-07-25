@@ -20,6 +20,7 @@ async function search(soundcloudId: string, query: string, options?: SearchOptio
     const result = await fetch(url, { method: 'GET' }).then(res => res.json()).catch(err => err);
     if(result instanceof Error || result?.total_results < 1) return null;
     const tracks: Track[] = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     result?.collection?.forEach((track: any) => {
         tracks.push({
             id: track.id,

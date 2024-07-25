@@ -4,9 +4,8 @@ import { getOrInitVoiceConnection } from "@/utils/voiceConnection";
 import playDl, { SoundCloudTrack } from 'play-dl'
 import { AudioPlayerStatus } from "@discordjs/voice";
 import { addTrack } from "@/utils/queueTracks";
-import { initializePlayer, PlayerState, playTrack } from "@/utils/player";
+import { initializeDefaultPlayerEvents, initializePlayer, PlayerState, playTrack } from "@/utils/player";
 import { emitEvent } from "@/utils/sockets";
-import { QueueTrack } from "types/queue";
 
 // INIT
 const router = Router({ mergeParams: true })
@@ -33,17 +32,8 @@ router.post('/:trackPermalink', async (req: Request, res: Response) => {
             return res.status(403).json({ status: 'error', error: 'User is not in same Channel as Bot'})
         const so_info = await playDl.soundcloud(trackPermalink) as SoundCloudTrack // Proven to be track with validateId
         // 1. If player doesnt exists create one
-        if(!connection.player){
-            initializePlayer(playerId, connection, { onQueueEnd: () => { // should be emitted in live socket connection
-                console.log('Queue has ended')
-                emitEvent('queue-end', playerId)
-            }, onStreamError: () => {
-                console.warn('No Stream')
-            }, onNextSong: (queueTrack: QueueTrack) => {
-                console.log('Playing song:', queueTrack.track.title)
-                emitEvent('now-playing', playerId, queueTrack)
-            } })
-        }
+        if(!connection.player)
+            initializePlayer(playerId, connection, initializeDefaultPlayerEvents(playerId))
         // 2. Add track to queue
         const queueTrack = await addTrack(playerId, so_info)
         emitEvent('new-queue-song', playerId, queueTrack)
@@ -54,12 +44,11 @@ router.post('/:trackPermalink', async (req: Request, res: Response) => {
             if(playerState == PlayerState.NoStream)
                 return res.status(404).json({ status: 'error', playerStatus: 'paused', error: 'Stream Not Found' })
             if(playerState == PlayerState.Playing) emitEvent('now-playing', playerId, queueTrack)
-            if(forcePlay === '1'){
+            // if(forcePlay === '1')
                 // Emit: {USER} skipped and played {SONG}
-            }
         }
         const playerStatus = connection.player?.state.status == AudioPlayerStatus.Playing || connection.player?.state.status == AudioPlayerStatus.Buffering ? 'playing' : 'paused'
-        return res.json({ status: 'ok', playerStatus})
+        return res.json({ status: 'ok', playerStatus })
     }catch(err){
         console.error(err)
         return res.status(500).json({ status: 'error', error: err })

@@ -1,12 +1,13 @@
 import { SoundCloudTrack } from "play-dl"
-import { redisClient } from "../server"
+import { redisClient } from "@/server"
 import { v4 as uuid } from 'uuid'
 import { QueueTrack, Track } from "types/queue"
 import { isQueueTrack } from "@/validators/track"
 
 const redisTracksId = (playerId: string) => `player:${playerId}#tracks`
 
-const soundcloudTrackToTrack = (track: any): Track => {
+ 
+const soundcloudTrackToTrack = (track: SoundCloudTrack): Track => {
     return ({
         id: track.id,
         title: track.name,
@@ -60,6 +61,14 @@ async function getTrackByQueueId(playerId: string, queueId?: string|null): Promi
     return ({ prev: null, track: null, next: null })
 }
 
+async function getTrackByPosition(playerId: string, position: number){
+    const tracks = await redisClient.lRange(redisTracksId(playerId), position, position)
+    if(tracks.length < 1) return null
+    const queueTrack = JSON.parse(tracks[0])
+    if(!isQueueTrack(queueTrack)) return null
+    return queueTrack
+}
+
 async function getAllTracks(playerId: string){
     const tracks = await redisClient.lRange(redisTracksId(playerId), 0, -1)
     const queueTracks: QueueTrack[] = [];
@@ -74,5 +83,6 @@ export {
     getTracksLen,
     addTrack,
     getTrackByQueueId,
+    getTrackByPosition,
     getAllTracks
 }

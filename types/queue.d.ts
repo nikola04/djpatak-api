@@ -1,5 +1,5 @@
 export interface SoundCloudUser {
-    id: number
+    id: string
     username: string
     permalink: string
     thumbnail: string
@@ -12,6 +12,7 @@ export interface Track{
     thumbnail: string
     duration: number
     user: SoundCloudUser
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     formats: any[]
 }
 

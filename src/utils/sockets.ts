@@ -16,7 +16,7 @@ export function handleSocketServer(httpServer: Server, wss: WebSocketServer){
             socket.destroy()
             return
         }
-        const { userId }  = auth
+        // const { userId }  = auth
         wss.handleUpgrade(req, socket, head, (ws: WebSocket) => {
             const socketId = uuid()
             ws.socketId = socketId
@@ -78,11 +78,12 @@ export function deleteSocket(socketId: string){
     socketsMap.delete(socketId)
 }
 
-type EventType = 'now-playing'|'new-queue-song'|'queue-end'|'pause'|'resume'|'repeat'|'stop'
+type EventType = 'now-playing'|'new-queue-song'|'no-queue-track'|'queue-end'|'pause'|'resume'|'repeat'|'stop'|'volume'
 export function emitEvent(event: 'now-playing'|'new-queue-song', playerId: string, track: QueueTrack): void;
 export function emitEvent(event: 'repeat', playerId: string, repeat: Repeat): void;
-export function emitEvent(event: Exclude<EventType, 'now-playing'|'new-queue-song'|'repeat'>, playerId: string): void;
-export function emitEvent(event: EventType, playerId: string, data?: any): void{
+export function emitEvent(event: 'volume', playerId: string, volume: number): void;
+export function emitEvent(event: Exclude<EventType, 'now-playing'|'new-queue-song'|'repeat'|'volume'>, playerId: string): void;
+export function emitEvent(event: EventType, playerId: string, data?: QueueTrack|Repeat|number): void{
     sendMessageToPlayerSockets(playerId, JSON.stringify({
         event,
         data

@@ -15,14 +15,10 @@ export enum TokenVerifyResponse{
 }
 
 export function generateAccessTokenJWT(userId: string, expiresIn: number = 600){
-    try{
-        return jwt.sign({ userId }, privateKey, {
-            expiresIn,
-            algorithm: 'RS256'
-        })
-    }catch(err){
-        throw err
-    }
+    return jwt.sign({ userId }, privateKey, {
+        expiresIn,
+        algorithm: 'RS256'
+    })
 }
 function verifyAccessToken(jwtToken: string): [TokenVerifyResponse, JwtPayload|string|null] {
     try{
@@ -39,14 +35,10 @@ export async function generateRefreshToken(){
     return ({ hashedRefreshToken: await bcrypt.hash(refreshToken, 10), refreshToken })
 }
 export function generateRefreshTokenJWT(token: string, userId: string, expiresIn: number = 15811200000){
-    try{
-        return jwt.sign({ userId, refreshToken: token }, privateKey, {
-            expiresIn,
-            algorithm: 'RS256'
-        })
-    }catch(err){
-        throw err
-    }
+    return jwt.sign({ userId, refreshToken: token }, privateKey, {
+        expiresIn,
+        algorithm: 'RS256'
+    })
 }
 
 function verifyRefreshTokenJWT(jwtToken: string): [TokenVerifyResponse, JwtPayload|string|null]{

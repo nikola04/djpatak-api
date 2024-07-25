@@ -5,6 +5,22 @@ import generateAndSetToken from "@/utils/token"
 const router = Router()
 
 const discordScopes = ['identify', 'guilds', 'email']
+
+type DiscordUserResult = { 
+    id: string,
+    username: string, 
+    email: string, 
+    avatar: string|null, 
+    discriminator: string 
+}
+type OAuthData = {
+    scope: string,
+    token_type: string,
+    access_token: string,
+    refresh_token: string,
+    expires_in: number
+}
+
 router.get('/', async (req: Request, res: Response) => {
     const { code } = req.query
     if(!code || typeof code !== 'string')
@@ -17,20 +33,20 @@ router.get('/', async (req: Request, res: Response) => {
         redirect_uri: process.env.DISCORD_REDIRECT_URI!,
         scope: discordScopes.join(' '),
     })
-    const oAuthData = await fetch("https://discord.com/api/v10/oauth2/token", {
+    const oAuthData: OAuthData|null = await fetch("https://discord.com/api/v10/oauth2/token", {
         method: 'POST',
         headers: {
              'Content-Type': 'application/x-www-form-urlencoded'
         },
         body: params.toString()
     }).then(res => res.json())
-    .catch(err => null)
+    .catch(() => null)
     if(!oAuthData || !oAuthData.access_token)
         return res.status(400).json({ status: 'error', error: 'Code Not Valid'})
-    const userResult = await fetch('https://discord.com/api/users/@me', {
+    const userResult: DiscordUserResult|null = await fetch('https://discord.com/api/users/@me', {
         headers: { 'Authorization': `${oAuthData.token_type} ${oAuthData.access_token}` }
     }).then(res => res.json())
-    .catch(err => null)
+    .catch(() => null)
     if(!userResult || !userResult.id)
         return res.status(500).json({ status: 'error', error: 'Error while getting Discord User' })
     // Create Account if doesnt exists
@@ -49,8 +65,8 @@ router.get('/', async (req: Request, res: Response) => {
     return res.redirect(301, process.env.APP_URL!)
 })
 
-function discordAvatarURL(userResult: any){
-    if (userResult.avatar === null) {
+function discordAvatarURL(userResult: DiscordUserResult){
+    if (userResult.avatar == null) {
         const defaultAvatarNumber = parseInt(userResult.discriminator) % 5
         return `https://cdn.discordapp.com/embed/avatars/${defaultAvatarNumber}.png`
     }
@@ -58,7 +74,7 @@ function discordAvatarURL(userResult: any){
     return `https://cdn.discordapp.com/avatars/${userResult.id}/${userResult.avatar}.${format}`
 }
 
-async function newDiscordAccountUser(userResult: any, oAuthData: any){
+async function newDiscordAccountUser(userResult: DiscordUserResult, oAuthData: OAuthData){
     const user = await User.create({
         name: userResult.username,
         email: userResult.email,
