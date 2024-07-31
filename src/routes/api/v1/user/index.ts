@@ -3,11 +3,14 @@ import User from "@/models/user.model";
 import { IUser } from 'types/user'
 import { getDiscordAccount, PartialDiscordGuild } from "@/utils/discord";
 import { botClient } from "@/server";
+import playlistsRouter from './playlists'
 
 // INIT
 const router = Router()
 
 // ROUTES
+router.use('/me/playlists', playlistsRouter)
+
 router.get('/me', async (req: Request, res: Response) => {
     if(!req.userId) return res.sendStatus(401)
     const user: IUser|null = await User.findById(req.userId)

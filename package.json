@@ -19,6 +19,7 @@
   "dependencies": {
     "@discordjs/voice": "^0.17.0",
     "bcrypt": "^5.1.1",
+    "body-parser": "^1.20.2",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "discord.js": "^14.15.3",
@@ -51,6 +52,7 @@
     "jest": "^29.7.0",
     "module-alias": "^2.2.3",
     "nodemon": "^3.1.4",
+    "prettier": "3.3.3",
     "ts-node": "^10.9.2",
     "tsx": "^4.16.2",
     "typescript": "^5.5.3",
