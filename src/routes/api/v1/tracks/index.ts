@@ -1,7 +1,13 @@
+import { ratelimit } from "@/middlewares/ratelimit";
 import SoundCloud from "@/utils/soundcloud";
 import { Router } from "express";
 
 const router = Router()
+
+router.use(ratelimit({
+    ratelimit: 1000,
+    maxAttempts: 2
+}))
 
 router.get("/search/:query", async (req, res) => {
     const searchQuery = req.params.query

@@ -4,9 +4,14 @@ import Playlist from "@/models/playlist.model";
 import { IPlaylist } from "types/playlist";
 import { isValidPlaylistName } from "@/validators/playlist";
 import { isValidObjectId } from "mongoose";
+import { ratelimit } from "@/middlewares/ratelimit";
 
 // INIT
 const router = Router();
+router.use(ratelimit({
+    ratelimit: 1000,
+    maxAttempts: 2
+}))
 router.use(bodyParser.json());
 
 // ROUTES

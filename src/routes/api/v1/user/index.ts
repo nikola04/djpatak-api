@@ -4,14 +4,19 @@ import { IUser } from 'types/user'
 import { getDiscordAccount, PartialDiscordGuild } from "@/utils/discord";
 import { botClient } from "@/server";
 import playlistsRouter from './playlists'
+import { ratelimit } from "@/middlewares/ratelimit";
 
 // INIT
 const router = Router()
 
 // ROUTES
+
 router.use('/me/playlists', playlistsRouter)
 
-router.get('/me', async (req: Request, res: Response) => {
+router.get('/me', ratelimit({
+    ratelimit: 1000,
+    maxAttempts: 2
+}), async (req: Request, res: Response) => {
     if(!req.userId) return res.sendStatus(401)
     const user: IUser|null = await User.findById(req.userId)
     if(!user) return res.status(404).json({ status: 'error', error: 'User Not Found' })
@@ -23,7 +28,10 @@ router.get('/me', async (req: Request, res: Response) => {
     } })
 })
 
-router.get('/guilds', async (req: Request, res: Response) => {
+router.get('/guilds', ratelimit({
+    ratelimit: 1000,
+    maxAttempts: 2
+}), async (req: Request, res: Response) => {
     const userId = req.userId
     if(!userId) return res.sendStatus(401)
     const account = await getDiscordAccount(userId)
