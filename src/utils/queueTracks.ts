@@ -37,6 +37,19 @@ async function getTracksLen(playerId: string) {
     return await redisClient.lLen(redisTracksId(playerId))
 }
 
+async function removeTrackByQueueId(playerId: string, queueId: string): Promise<boolean>{
+    const tracks = await redisClient.lRange(redisTracksId(playerId), 0, -1)
+    let trackString = null
+    for(let i = 0; i < tracks.length; i++){
+        if(JSON.parse(tracks[i]).queueId != queueId) continue;
+        trackString = tracks[i]
+        break;
+    }
+    if(!trackString) return false
+    await redisClient.lRem(redisTracksId(playerId), 1, trackString)
+    return true
+}
+
 /**
  * @returns track for track with id equals to queueId, prev as previous track to 'track' and next as next track to 'track'
  * @returns last song in queue as prev if queueId is null or undefined
@@ -83,6 +96,7 @@ export {
     getTracksLen,
     addTrack,
     getTrackByQueueId,
+    removeTrackByQueueId,
     getTrackByPosition,
     getAllTracks
 }

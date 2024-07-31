@@ -2,7 +2,7 @@ import { Request, Response, Router } from "express";
 import { botClient } from "@/server";
 import { getOrInitVoiceConnection } from "@/utils/voiceConnection";
 import { AudioPlayerStatus, getVoiceConnection } from "@discordjs/voice";
-import { getAllTracks, getTrackByQueueId } from "@/utils/queueTracks";
+import { getAllTracks, getTrackByQueueId, removeTrackByQueueId } from "@/utils/queueTracks";
 import { initializeDefaultPlayerEvents, initializePlayer, PlayerState, playNextTrack, playPrevTrack, playTrackByQueueId } from "@/utils/player";
 import { emitEvent } from "@/utils/sockets";
 import { isUserInGuildVoice } from "@/middlewares/user";
@@ -61,6 +61,28 @@ router.post('/prev', async (req: Request, res: Response) => {
         if(state == PlayerState.Playing) 
             emitEvent('now-playing', playerId, track)
         return res.json({ status: 'ok', playerStatus: state == PlayerState.Playing ? 'playing': 'paused', queueTrack: track })
+    }catch(err){
+        console.error(err)
+        return res.status(500).json({ status: 'error', error: err })
+    }
+})
+
+router.delete('/:queueId', async (req: Request, res: Response) => {
+    const userDiscordId = req.userDiscordId
+    const playerId = req.params.playerId
+    const queueTrackId = req.params.queueId
+    try{
+        const guild = botClient.guilds.cache.get(playerId)!
+        const member = guild.members.cache.get(userDiscordId!)!
+        const channel = member.voice.channel!
+        const connection = getVoiceConnection(playerId)
+        if(!connection)
+            return res.status(403).json({ status: 'error', error: 'Bot is not in voice channel'})
+        if(guild.members.me?.voice.channelId != channel.id)
+            return res.status(403).json({ status: 'error', error: 'User is not in same Channel as Bot'})
+        if(!await removeTrackByQueueId(playerId, queueTrackId))
+            return res.json({ status: 'error' })
+        return res.json({ status: 'ok' })
     }catch(err){
         console.error(err)
         return res.status(500).json({ status: 'error', error: err })

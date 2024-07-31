@@ -102,7 +102,6 @@ async function playTrack(connection: VoiceConnection, track: SoundCloudTrack): P
             return PlayerState.NoStream
         const resource = createAudioResource(stream.stream, { inputType: stream.type, inlineVolume: true })
         if(resource.volume && connection.playerPreferences){
-            console.log(connection.playerPreferences.volume.getVolume())
             connection.playerPreferences.volume.setVolumeResource(resource.volume) // set vol change func
             resource.volume.setVolume(connection.playerPreferences.volume.getVolume()) // update vol
         }else connection.playerPreferences?.volume.setVolumeResource(null)
