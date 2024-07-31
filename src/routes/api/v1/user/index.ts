@@ -1,5 +1,6 @@
 import { Request, Response, Router } from "express";
-import User, { IUser } from "@/models/user.model";
+import User from "@/models/user.model";
+import { IUser } from 'types/user'
 import { getDiscordAccount, PartialDiscordGuild } from "@/utils/discord";
 import { botClient } from "@/server";
 

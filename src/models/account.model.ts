@@ -1,16 +1,5 @@
 import { Schema, model } from "mongoose";
-
-export interface IAccount{
-    _id: Schema.Types.ObjectId;
-    provider: string,
-    providerAccountId: string,
-    providerAccountScopes: string,
-    tokenType: string,
-    accessToken: string,
-    refreshToken: string,
-    expiresAt: number,
-    userId: Schema.Types.ObjectId
-}
+import { IAccount } from "types/account";
 
 const accountSchema = new Schema<IAccount>({
     provider: {

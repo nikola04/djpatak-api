@@ -1,4 +1,5 @@
-import Account, { IAccount } from "@/models/account.model";
+import Account from "@/models/account.model";
+import { IAccount } from 'types/account'
 
 export type PartialDiscordGuild = {
     id: string,

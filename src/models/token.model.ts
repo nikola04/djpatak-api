@@ -1,11 +1,5 @@
 import { Schema, model } from "mongoose";
-
-export interface IToken{
-    _id: Schema.Types.ObjectId,
-    userId: Schema.Types.ObjectId,
-    refreshToken: string,
-    expiresAt: number
-}
+import { IToken } from "types/token";
 
 const tokenSchema = new Schema<IToken>({
     userId: {
