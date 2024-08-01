@@ -3,8 +3,9 @@ import { redisClient } from "@/server"
 import { v4 as uuid } from 'uuid'
 import { QueueTrack, Track } from "types/queue"
 import { isQueueTrack } from "@/validators/track"
+import queueConfig from '@/configs/queue.config.json'
 
-const redisTracksId = (playerId: string) => `player:${playerId}#tracks`
+const redisQueueKeyByPlayerId = (playerId: string) => `player:${playerId}#tracks`
 
  
 const soundcloudTrackToTrack = (track: SoundCloudTrack): Track => {
@@ -29,16 +30,20 @@ async function addTrack(playerId: string, ...tracks: SoundCloudTrack[]): Promise
 async function addTrack(playerId: string, ...tracks: SoundCloudTrack[]): Promise<QueueTrack|QueueTrack[]>{
     const queueTracks: QueueTrack[] = tracks.map((track) => ({ queueId: uuid(), track: soundcloudTrackToTrack(track) }))
     const stringifiedTracks = queueTracks.map((track) => JSON.stringify(track))
-    await redisClient.rPush(redisTracksId(playerId), stringifiedTracks)
+    await redisClient.rPush(redisQueueKeyByPlayerId(playerId), stringifiedTracks)
     return queueTracks.length == 1 ? queueTracks[0] : queueTracks
 }
 
 async function getTracksLen(playerId: string) {
-    return await redisClient.lLen(redisTracksId(playerId))
+    return await redisClient.lLen(redisQueueKeyByPlayerId(playerId))
+}
+
+async function isQueueFull(playerId: string) {
+    return (await getTracksLen(playerId)) >= queueConfig.maxQueueSize
 }
 
 async function removeTrackByQueueId(playerId: string, queueId: string): Promise<boolean>{
-    const tracks = await redisClient.lRange(redisTracksId(playerId), 0, -1)
+    const tracks = await redisClient.lRange(redisQueueKeyByPlayerId(playerId), 0, -1)
     let trackString = null
     for(let i = 0; i < tracks.length; i++){
         if(JSON.parse(tracks[i]).queueId != queueId) continue;
@@ -46,7 +51,7 @@ async function removeTrackByQueueId(playerId: string, queueId: string): Promise<
         break;
     }
     if(!trackString) return false
-    await redisClient.lRem(redisTracksId(playerId), 1, trackString)
+    await redisClient.lRem(redisQueueKeyByPlayerId(playerId), 1, trackString)
     return true
 }
 
@@ -75,7 +80,7 @@ async function getTrackByQueueId(playerId: string, queueId?: string|null): Promi
 }
 
 async function getTrackByPosition(playerId: string, position: number){
-    const tracks = await redisClient.lRange(redisTracksId(playerId), position, position)
+    const tracks = await redisClient.lRange(redisQueueKeyByPlayerId(playerId), position, position)
     if(tracks.length < 1) return null
     const queueTrack = JSON.parse(tracks[0])
     if(!isQueueTrack(queueTrack)) return null
@@ -83,7 +88,7 @@ async function getTrackByPosition(playerId: string, position: number){
 }
 
 async function getAllTracks(playerId: string){
-    const tracks = await redisClient.lRange(redisTracksId(playerId), 0, -1)
+    const tracks = await redisClient.lRange(redisQueueKeyByPlayerId(playerId), 0, -1)
     const queueTracks: QueueTrack[] = [];
     tracks.forEach((track) => {
         track = JSON.parse(track)
@@ -92,9 +97,15 @@ async function getAllTracks(playerId: string){
     return queueTracks
 }
 
+async function deleteQueue(playerId: string){
+    await redisClient.del(redisQueueKeyByPlayerId(playerId))
+}
+
 export {
     getTracksLen,
     addTrack,
+    isQueueFull,
+    deleteQueue,
     getTrackByQueueId,
     removeTrackByQueueId,
     getTrackByPosition,

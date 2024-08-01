@@ -3,7 +3,7 @@ import { botClient } from "@/server";
 import { getOrInitVoiceConnection } from "@/utils/voiceConnection";
 import playDl, { SoundCloudTrack } from 'play-dl'
 import { AudioPlayerStatus } from "@discordjs/voice";
-import { addTrack } from "@/utils/queueTracks";
+import { addTrack, isQueueFull } from "@/utils/queueTracks";
 import { initializeDefaultPlayerEvents, initializePlayer, PlayerState, playTrack } from "@/utils/player";
 import { emitEvent } from "@/utils/sockets";
 
@@ -34,6 +34,10 @@ router.post('/:trackPermalink', async (req: Request, res: Response) => {
         // 1. If player doesnt exists create one
         if(!connection.player)
             initializePlayer(playerId, connection, initializeDefaultPlayerEvents(playerId))
+        else if(await isQueueFull(playerId)){
+            // not allowed, user needs to manually delete songs
+            return res.status(403).json({ status: 'error', error: 'Queue is full' })
+        }
         // 2. Add track to queue
         const queueTrack = await addTrack(playerId, so_info)
         emitEvent('new-queue-song', playerId, queueTrack)

@@ -77,6 +77,7 @@ function initializePlayer(playerId: string, connection: VoiceConnection, events?
         }
     })
     connection.subscribe(player)
+    connection.playerId = playerId
     connection.playerPreferences = initializePlayerPreferences()
     connection.player = player
     return player

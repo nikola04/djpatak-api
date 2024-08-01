@@ -1,5 +1,6 @@
 import { entersState, getVoiceConnection, joinVoiceChannel, VoiceConnectionStatus } from "@discordjs/voice";
 import { GuildBasedChannel } from "discord.js";
+import { deleteQueue } from "./queueTracks";
 
 async function initVoiceConnection(channel: GuildBasedChannel){
     const connection = joinVoiceChannel({
@@ -15,6 +16,8 @@ async function initVoiceConnection(channel: GuildBasedChannel){
             ]);
             // Seems to be reconnecting to a new channel - ignore disconnect
         } catch (_) {
+            if(connection.playerId)
+                await deleteQueue(connection.playerId)
             connection.destroy();
         }
     });
