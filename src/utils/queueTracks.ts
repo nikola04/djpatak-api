@@ -5,7 +5,7 @@ import { QueueTrack, Track } from "types/queue"
 import { isQueueTrack } from "@/validators/track"
 import queueConfig from '@/configs/queue.config.json'
 
-const redisQueueKeyByPlayerId = (playerId: string) => `player:${playerId}#tracks`
+const redisQueueKeyByPlayerId = (playerId: string) => `player:${playerId}#queue`
 
  
 const soundcloudTrackToTrack = (track: SoundCloudTrack): Track => {

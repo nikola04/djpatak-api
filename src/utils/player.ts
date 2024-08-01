@@ -54,7 +54,19 @@ function initializePlayer(playerId: string, connection: VoiceConnection, events?
     const player = createAudioPlayer({
         behaviors: { noSubscriber: NoSubscriberBehavior.Pause }
     })
+    let timeout: null|any = null
     player.on("stateChange", async (oldState, newState) => {
+        if(newState.status == AudioPlayerStatus.Idle){
+            if(!timeout)
+                timeout = setTimeout(() => {
+                    connection.disconnect()
+                }, 300_000) // 5 minutes
+        }else if(newState.status == AudioPlayerStatus.Playing){
+            if(timeout) {
+                clearTimeout(timeout)
+                timeout = null
+            }
+        }
         if(oldState.status == AudioPlayerStatus.Playing && newState.status == AudioPlayerStatus.Idle){ // logic for changing tracks
             const playTrackResp = (connection.playerPreferences?.repeat === 'track') ?
                 await playTrackByQueueId(connection, playerId, connection.trackId)
