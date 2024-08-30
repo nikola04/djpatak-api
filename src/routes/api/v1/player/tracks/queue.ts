@@ -33,6 +33,8 @@ router.post('/next', async (req: Request, res: Response) => { // Getting current
             emitEvent('queue-end', playerId)
         if(state == PlayerState.Playing) 
             emitEvent('now-playing', playerId, track)
+        if(track)
+            track.track.isLiked = await LikedTrackModel.findOne({ likedUserId: req.userId, providerId: 'soundcloud', providerTrackId: track?.track.permalink }) !== null
         return res.json({ status: 'ok', playerStatus: state == PlayerState.Playing ? 'playing': 'paused', queueTrack: track })
     }catch(err){
         console.error(err)
@@ -61,6 +63,8 @@ router.post('/prev', async (req: Request, res: Response) => {
             emitEvent('queue-end', playerId)
         if(state == PlayerState.Playing) 
             emitEvent('now-playing', playerId, track)
+        if(track)
+            track.track.isLiked = await LikedTrackModel.findOne({ likedUserId: req.userId, providerId: 'soundcloud', providerTrackId: track?.track.permalink }) !== null
         return res.json({ status: 'ok', playerStatus: state == PlayerState.Playing ? 'playing': 'paused', queueTrack: track })
     }catch(err){
         console.error(err)
@@ -106,14 +110,14 @@ router.post('/:queueId', async (req: Request, res: Response) => {
         }
         connection.trackId = queueTrackId
         const { state, track } = await playTrackByQueueId(connection, playerId, queueTrackId)
-        if(track)
-            track.track.isLiked = await LikedTrackModel.findOne({ likedUserId: req.userId, providerId: 'soundcloud', providerTrackId: track?.track.permalink }) !== null
         if(state == PlayerState.NoStream)
             return res.json({ status: 'error', error: 'Error while getting stream', playerStatus: connection.player?.state.status === AudioPlayerStatus.Playing ? 'playing' : 'paused' })
         if(state == PlayerState.NoTrack)
             return res.json({ status: 'error', error: 'No Track Found', playerStatus: connection.player?.state.status === AudioPlayerStatus.Playing ? 'playing' : 'paused' })
         if(state == PlayerState.Playing) 
             emitEvent('now-playing', playerId, track)
+        if(track)
+            track.track.isLiked = await LikedTrackModel.findOne({ likedUserId: req.userId, providerId: 'soundcloud', providerTrackId: track?.track.permalink }) !== null
         return res.json({ status: 'ok', playerStatus: state == PlayerState.Playing ? 'playing' : 'paused', queueTrack: track })
     }catch(err){
         console.error(err)
