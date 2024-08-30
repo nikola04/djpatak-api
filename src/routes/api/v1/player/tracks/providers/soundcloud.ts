@@ -6,6 +6,7 @@ import { AudioPlayerStatus } from "@discordjs/voice";
 import { addTrack, isQueueFull } from "@/utils/queueTracks";
 import { initializeDefaultPlayerEvents, initializePlayer, PlayerState, playTrack } from "@/utils/player";
 import { emitEvent } from "@/utils/sockets";
+import LikedTrackModel from "@/models/likedTracks.model";
 
 // INIT
 const router = Router({ mergeParams: true })
@@ -40,6 +41,8 @@ router.post('/:trackPermalink', async (req: Request, res: Response) => {
         }
         // 2. Add track to queue
         const queueTrack = await addTrack(playerId, so_info)
+        if(queueTrack)
+            queueTrack.track.isLiked = await LikedTrackModel.findOne({ likedUserId: req.userId, providerId: 'soundcloud', providerTrackId: queueTrack.track.permalink }) !== null
         emitEvent('new-queue-song', playerId, queueTrack)
         // 3. if player is not playing anything play added track
         if(connection.player?.state.status == AudioPlayerStatus.Idle || forcePlay === '1'){

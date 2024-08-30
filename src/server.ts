@@ -27,7 +27,6 @@ const redisClient = createClient({
         port: Number(process.env.REDIS_PORT)
     }
 })
-  
 app.use(cors({
     origin: process.env.APP_URL,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],

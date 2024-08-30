@@ -9,6 +9,7 @@ export interface Track{
     id: number
     title: string
     permalink: string
+    isLiked?: boolean
     thumbnail: string
     duration: number
     user: SoundCloudUser

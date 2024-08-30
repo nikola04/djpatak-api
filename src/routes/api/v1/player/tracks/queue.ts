@@ -6,6 +6,7 @@ import { getAllTracks, getTrackByQueueId, removeTrackByQueueId } from "@/utils/q
 import { initializeDefaultPlayerEvents, initializePlayer, PlayerState, playNextTrack, playPrevTrack, playTrackByQueueId } from "@/utils/player";
 import { emitEvent } from "@/utils/sockets";
 import { isUserInGuildVoice } from "@/middlewares/user";
+import LikedTrackModel from "@/models/likedTracks.model";
 
 const router = Router({ mergeParams: true })
 
@@ -105,6 +106,8 @@ router.post('/:queueId', async (req: Request, res: Response) => {
         }
         connection.trackId = queueTrackId
         const { state, track } = await playTrackByQueueId(connection, playerId, queueTrackId)
+        if(track)
+            track.track.isLiked = await LikedTrackModel.findOne({ likedUserId: req.userId, providerId: 'soundcloud', providerTrackId: track?.track.permalink }) !== null
         if(state == PlayerState.NoStream)
             return res.json({ status: 'error', error: 'Error while getting stream', playerStatus: connection.player?.state.status === AudioPlayerStatus.Playing ? 'playing' : 'paused' })
         if(state == PlayerState.NoTrack)
@@ -133,8 +136,13 @@ router.get('/current', async (req: Request, res: Response) => { // Getting curre
         if(connection.trackId == null)
             return res.json({ status: 'ok', queueTrack: null, playerStatus: 'paused' })
         const { track } = await getTrackByQueueId(playerId, connection.trackId)
+        if(track)
+            track.track.isLiked = await LikedTrackModel.findOne({ likedUserId: req.userId, providerId: 'soundcloud', providerTrackId: track?.track.permalink }) !== null
         const playerStatus = connection.player?.state.status == AudioPlayerStatus.Playing || connection.player?.state.status == AudioPlayerStatus.Buffering ? 'playing' : 'paused'
-        return res.json({ status: 'ok', queueTrack: track, playerStatus, playerPreferences: connection.playerPreferences })
+        return res.json({ status: 'ok', queueTrack: track, playerStatus, playerPreferences: {
+            repeat: connection.playerPreferences?.repeat,
+            volume: connection.playerPreferences?.volume.getVolume()
+        }})
     }catch(err){
         console.error(err)
         return res.status(500).json({ status: 'error', error: err })

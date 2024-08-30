@@ -4,6 +4,7 @@ import { IUser } from 'types/user'
 import { getDiscordAccount, PartialDiscordGuild } from "@/utils/discord";
 import { botClient } from "@/server";
 import playlistsRouter from './playlists'
+import likesRouter from './likes'
 import { ratelimit } from "@/middlewares/ratelimit";
 
 // INIT
@@ -12,6 +13,7 @@ const router = Router()
 // ROUTES
 
 router.use('/me/playlists', playlistsRouter)
+router.use('/me/likes', likesRouter)
 
 router.get('/me', ratelimit({
     ratelimit: 1000,
@@ -28,7 +30,7 @@ router.get('/me', ratelimit({
     } })
 })
 
-router.get('/guilds', ratelimit({
+router.get('/me/guilds', ratelimit({
     ratelimit: 1000,
     maxAttempts: 2
 }), async (req: Request, res: Response) => {
