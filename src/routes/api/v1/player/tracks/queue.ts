@@ -23,7 +23,7 @@ router.post('/next', async (req: Request, res: Response) => { // Getting current
         if(!connection || !connection.player)
             return res.status(400).json({ status: 'error', error: 'Player is not connected' })
         if(guild.members.me?.voice.channelId != channel.id)
-            return res.status(403).json({ status: 'error', error: 'User is not in same Channel as Bot'})
+            return res.status(403).json({ status: 'error', error: 'You must be in same channel as Bot'})
         const { track, state } = await playNextTrack(connection, playerId)
         if(state == PlayerState.NoStream) 
             return res.json({ status: 'error', error: 'Stream Not Found', playerStatus: connection.player?.state.status === AudioPlayerStatus.Playing ? 'playing' : 'paused', queueTrack: null })
@@ -53,7 +53,7 @@ router.post('/prev', async (req: Request, res: Response) => {
         if(!connection || !connection.player)
             return res.status(400).json({ status: 'error', error: 'Player is not connected' })
         if(guild.members.me?.voice.channelId != channel.id)
-            return res.status(403).json({ status: 'error', error: 'User is not in same Channel as Bot'})
+            return res.status(403).json({ status: 'error', error: 'You must be in same channel as Bot'})
         const { state, track } = await playPrevTrack(connection, playerId)
         if(state == PlayerState.NoStream) 
             return res.json({ status: 'error', error: 'Stream Not Found', playerStatus: connection.player?.state.status === AudioPlayerStatus.Playing ? 'playing' : 'paused', queueTrack: null })
@@ -84,7 +84,7 @@ router.delete('/:queueId', async (req: Request, res: Response) => {
         if(!connection)
             return res.status(403).json({ status: 'error', error: 'Bot is not in voice channel'})
         if(guild.members.me?.voice.channelId != channel.id)
-            return res.status(403).json({ status: 'error', error: 'User is not in same Channel as Bot'})
+            return res.status(403).json({ status: 'error', error: 'You must be in same channel as Bot'})
         if(!await removeTrackByQueueId(playerId, queueTrackId))
             return res.json({ status: 'error' })
         return res.json({ status: 'ok' })
@@ -104,7 +104,7 @@ router.post('/:queueId', async (req: Request, res: Response) => {
         const channel = member.voice.channel!
         const { connection, isNew } = await getOrInitVoiceConnection(channel)
         if(!isNew && guild.members.me?.voice.channelId != channel.id)
-            return res.status(403).json({ status: 'error', error: 'User is not in same Channel as Bot'})
+            return res.status(403).json({ status: 'error', error: 'You must be in same channel as Bot'})
         if(!connection.player){
             initializePlayer(playerId, connection, initializeDefaultPlayerEvents(playerId))
         }
@@ -133,7 +133,7 @@ router.get('/current', async (req: Request, res: Response) => { // Getting curre
         const member = guild.members.cache.get(userDiscordId!)!
         const channel = member.voice.channel!
         if(guild.members.me?.voice.channelId != channel.id)
-            return res.status(403).json({ status: 'error', error: 'User is not in same Channel as Bot'})
+            return res.status(403).json({ status: 'error', error: 'You must be in same channel as Bot'})
         const connection = getVoiceConnection(playerId)
         if(!connection)
             return res.status(400).json({ status: 'error', error: 'Player is not connected' })
@@ -161,7 +161,7 @@ router.get('/', async (req: Request, res: Response) => { // Getting current trac
         const member = guild.members.cache.get(userDiscordId!)!
         const channel = member.voice.channel!
         if(guild.members.me?.voice.channelId != channel.id)
-            return res.status(403).json({ status: 'error', error: 'User is not in same Channel as Bot'})
+            return res.status(403).json({ status: 'error', error: 'You must be in same channel as Bot'})
         const connection = getVoiceConnection(playerId)
         if(!connection)
             return res.status(400).json({ status: 'error', error: 'Player is not connected' })

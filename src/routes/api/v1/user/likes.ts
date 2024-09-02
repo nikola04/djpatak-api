@@ -1,8 +1,9 @@
 import { ratelimit } from "@/middlewares/ratelimit";
 import LikedTrackModel from "@/models/likedTracks.model";
+import { validateTrackId } from "@/validators/track";
 import bodyParser from "body-parser";
 import { Router, Request, Response } from "express";
-import { so_validate, soundcloud, SoundCloudTrack } from "play-dl";
+import { soundcloud, SoundCloudTrack } from "play-dl";
 import { ILikedTrack } from "types/track";
 
 // INIT
@@ -54,12 +55,12 @@ router.post('/:trackId', async (req: Request, res: Response) => {
     try{
         let track: SoundCloudTrack|null = null
         if(providerId === 'soundcloud'){
-            if(!await validateTrackId(trackId)) return res.status(400).json({ status: 'error', error: 'track id is not valid' })
+            if(!await validateTrackId(trackId)) return res.status(400).json({ status: 'error', error: 'Track ID is not valid' })
             track = await soundcloud(trackId) as SoundCloudTrack
         }else
-            return res.status(400).json({ status: 'error', error: 'provider is not valid' })
+            return res.status(400).json({ status: 'error', error: 'Provider is not valid' })
         if(!track) 
-            return res.status(404).json({ status: 'error', error: 'track not found' })
+            return res.status(404).json({ status: 'error', error: 'Track not found' })
         await LikedTrackModel.updateOne({
             likedUserId: req.userId,
             providerId: providerId,
@@ -80,9 +81,5 @@ router.post('/:trackId', async (req: Request, res: Response) => {
         return res.status(500).json({ status: 'error', error });
     }
 })
-
-async function validateTrackId(id: string): Promise<boolean>{
-    return await so_validate(id) == 'track'
-}
 
 export default router

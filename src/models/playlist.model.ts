@@ -10,6 +10,7 @@ const playlistSchema = new Schema<IPlaylist>({
         type: String,
         required: true
     },
+    description: String,
     metadata: {
         totalSongs: { type: Number, default: 0 },
         lastModified: { type: Date, default: Date.now }

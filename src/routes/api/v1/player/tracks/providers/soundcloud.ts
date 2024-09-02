@@ -24,13 +24,13 @@ router.post('/:trackPermalink', async (req: Request, res: Response) => {
         if(!guild) 
             return res.status(404).json({ status: 'error', error: 'No Player Found' })
         const member = guild.members.cache.get(userDiscordId)
-        if(!member) return res.status(403).json({ status: 'error', error: 'User is not in Guild Voice'})
+        if(!member) return res.status(403).json({ status: 'error', error: 'You are not in Guild\'s Voice'})
         const channel = member.voice.channel
         if(!channel)
-            return res.status(403).json({ status: 'error', error: 'User Not in Voice Channel' })
+            return res.status(403).json({ status: 'error', error: 'You are not in Voice Channel' })
         const { connection, isNew } = await getOrInitVoiceConnection(channel)
         if(!isNew && guild.members.me?.voice.channelId != channel.id)
-            return res.status(403).json({ status: 'error', error: 'User is not in same Channel as Bot'})
+            return res.status(403).json({ status: 'error', error: 'You must be in same channel as Bot'})
         const so_info = await playDl.soundcloud(trackPermalink) as SoundCloudTrack // Proven to be track with validateId
         // 1. If player doesnt exists create one
         if(!connection.player)

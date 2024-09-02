@@ -3,7 +3,7 @@ import User from "@/models/user.model";
 import { IUser } from 'types/user'
 import { getDiscordAccount, PartialDiscordGuild } from "@/utils/discord";
 import { botClient } from "@/server";
-import playlistsRouter from './playlists'
+import playlistsRouter from './playlists/playlists'
 import likesRouter from './likes'
 import { ratelimit } from "@/middlewares/ratelimit";
 

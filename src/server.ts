@@ -29,7 +29,7 @@ const redisClient = createClient({
 })
 app.use(cors({
     origin: process.env.APP_URL,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', ' Access-Control-Allow-Origin'],
     credentials: true
 }));
