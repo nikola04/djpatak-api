@@ -64,7 +64,7 @@ function initializePlayer(
   const player = createAudioPlayer({
     behaviors: { noSubscriber: NoSubscriberBehavior.Pause },
   });
-  let timeout: null | any = null;
+  let timeout: null | NodeJS.Timeout = null;
   player.on("stateChange", async (oldState, newState) => {
     if (newState.status == AudioPlayerStatus.Idle) {
       if (!timeout)
@@ -163,9 +163,7 @@ export async function playQueueTrack(
   connection: VoiceConnection,
   queueTrack: QueueTrack,
 ) {
-  const trackFetched = (await playDl.soundcloud(
-    `https://api.soundcloud.com/tracks/${queueTrack.providerTrackId}`,
-  )) as SoundCloudTrack;
+  const trackFetched = (await playDl.soundcloud(queueTrack.providerTrackId)) as SoundCloudTrack;
   connection.trackId = queueTrack.queueId;
   if (trackFetched == null) return PlayerState.NoStream;
   return await playTrack(connection, trackFetched);

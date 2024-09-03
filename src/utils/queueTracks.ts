@@ -12,9 +12,10 @@ const redisQueueKeyByPlayerId = (playerId: string) =>
 const soundcloudTrackToDbTrack = (track: SoundCloudTrack): DbTrack => {
   return {
     providerId: "soundcloud",
-    providerTrackId: String(track.id),
+    providerTrackId: String(track.permalink),
     trackData: {
       title: track.name,
+      thumbnail: track.thumbnail,
       duration: track.durationInMs,
       author: track.user.name,
     },

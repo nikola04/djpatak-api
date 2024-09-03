@@ -5,6 +5,7 @@ export type DbTrack = {
     providerTrackId: string,
     trackData: {
         title: string,
+        thumbnail: string,
         duration: number,
         author: string
     }

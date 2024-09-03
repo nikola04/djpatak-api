@@ -28,7 +28,7 @@ export const isQueueTrack = (obj: any): obj is QueueTrack => {
     return typeof obj === 'object'
         && obj !== null
         && typeof obj.queueId === 'string'
-        && isTrack(obj.track);
+        && isDbTrack(obj)
 }
 
 export const isDbTrack = (obj: any): obj is DbTrack => {
