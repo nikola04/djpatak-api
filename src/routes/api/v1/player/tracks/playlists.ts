@@ -1,31 +1,41 @@
-import { Request, Response, Router } from "express";
+import { isUserInGuildVoice } from "@/middlewares/user";
+import PlaylistModel from "@/models/playlist.model";
+import PlaylistTrackModel from "@/models/playlistTracks.model";
 import { botClient } from "@/server";
-import { getOrInitVoiceConnection } from "@/utils/voiceConnection";
-import playDl, { SoundCloudTrack } from "play-dl";
-import { AudioPlayerStatus } from "@discordjs/voice";
-import { addTrack, isQueueFull } from "@/utils/queueTracks";
 import {
   initializeDefaultPlayerEvents,
   initializePlayer,
   PlayerState,
-  playTrack,
+  playQueueTrack,
 } from "@/utils/player";
+import { addDbTrack } from "@/utils/queueTracks";
 import { emitEvent } from "@/utils/sockets";
+import { getOrInitVoiceConnection } from "@/utils/voiceConnection";
+import { AudioPlayerStatus, getVoiceConnection } from "@discordjs/voice";
+import { Request, Response, Router } from "express";
+import { QueueTrack } from "types/queue";
 
 // INIT
 const router = Router({ mergeParams: true });
 
-router.post("/:trackPermalink", async (req: Request, res: Response) => {
-  const userDiscordId = req.userDiscordId;
-  const forcePlay = req.query.force;
+// ROUTES
+router.post("/:playlistId", async (req: Request, res: Response) => {
   const playerId = req.params.playerId;
-  const trackPermalink = req.params.trackPermalink;
+  const playlistId = req.params.playlistId;
   try {
-    if (!userDiscordId) return res.sendStatus(401);
-    if (!(await validateId(trackPermalink)))
+    const playlist = await PlaylistModel.findById(playlistId).lean();
+    if (!playlist)
       return res
-        .status(400)
-        .json({ status: "error", error: "Invalid SoundCloud URL" });
+        .status(404)
+        .json({ status: "error", error: "Playlist is not found" });
+    if (playlist.ownerUserId != req.userId)
+      return res
+        .status(403)
+        .json({ status: "error", error: "You are not a playlist owner" });
+    const userDiscordId = req.userDiscordId;
+    const forcePlay = req.query.force;
+    const playerId = req.params.playerId;
+    if (!userDiscordId) return res.sendStatus(401);
     const guild = botClient.guilds.cache.get(playerId);
     if (!guild)
       return res
@@ -46,38 +56,40 @@ router.post("/:trackPermalink", async (req: Request, res: Response) => {
       return res
         .status(403)
         .json({ status: "error", error: "You must be in same channel as Bot" });
-    const so_info = (await playDl.soundcloud(
-      trackPermalink,
-    )) as SoundCloudTrack; // Proven to be track with validateId
-    // 1. If player doesnt exists create one
     if (!connection.player)
       initializePlayer(
         playerId,
         connection,
         initializeDefaultPlayerEvents(playerId),
       );
-    else if (await isQueueFull(playerId)) {
-      // not allowed, user needs to manually delete songs
-      return res.status(403).json({ status: "error", error: "Queue is full" });
-    }
-    // 2. Add track to queue
-    const queueTrack = await addTrack(playerId, so_info);
-    emitEvent("new-queue-song", playerId, queueTrack);
+    // 2. Clear queue and add tracks
+    const tracks = await PlaylistTrackModel.find({ playlistId }).lean();
+    if (!tracks || tracks.length == 0)
+      return res
+        .status(404)
+        .json({
+          status: "error",
+          error: "Playlist is empty. No tracks to play",
+        });
+    const queueTracks = (await addDbTrack(playerId, ...tracks)) as QueueTrack[];
+    emitEvent("new-queue-song", playerId, queueTracks[0]);
     // 3. if player is not playing anything play added track
     if (
       connection.player?.state.status == AudioPlayerStatus.Idle ||
       forcePlay === "1"
     ) {
-      connection.trackId = queueTrack.queueId;
-      const playerState = await playTrack(connection, so_info);
+      connection.trackId = queueTracks[0].queueId;
+      const playerState = await playQueueTrack(connection, queueTracks[0]);
       if (playerState == PlayerState.NoStream)
-        return res.status(404).json({
-          status: "error",
-          playerStatus: "paused",
-          error: "Stream Not Found",
-        });
+        return res
+          .status(404)
+          .json({
+            status: "error",
+            playerStatus: "paused",
+            error: "Stream Not Found",
+          });
       if (playerState == PlayerState.Playing)
-        emitEvent("now-playing", playerId, queueTrack);
+        emitEvent("now-playing", playerId, queueTracks[0]);
       // if(forcePlay === '1')
       // Emit: {USER} skipped and played {SONG}
     }
@@ -88,13 +100,8 @@ router.post("/:trackPermalink", async (req: Request, res: Response) => {
         : "paused";
     return res.json({ status: "ok", playerStatus });
   } catch (err) {
-    console.error(err);
     return res.status(500).json({ status: "error", error: err });
   }
 });
 
 export default router;
-
-async function validateId(id: string): Promise<boolean> {
-  return (await playDl.so_validate(id)) == "track";
-}
