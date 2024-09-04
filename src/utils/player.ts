@@ -135,6 +135,13 @@ async function playTrack(
   connection: VoiceConnection,
   track: SoundCloudTrack,
 ): Promise<PlayerState.NoStream | PlayerState.Playing> {
+  return playScTrack(connection, track);
+}
+
+async function playScTrack(
+  connection: VoiceConnection,
+  track: SoundCloudTrack,
+): Promise<PlayerState.NoStream | PlayerState.Playing> {
   try {
     const stream = await playDl.stream_from_info(track).catch((err) => {
       console.warn("> PlayDL Stream Error:", err);
@@ -163,7 +170,9 @@ export async function playQueueTrack(
   connection: VoiceConnection,
   queueTrack: QueueTrack,
 ) {
-  const trackFetched = (await playDl.soundcloud(queueTrack.providerTrackId)) as SoundCloudTrack;
+  const trackFetched = (await playDl.soundcloud(
+    queueTrack.providerTrackId,
+  )) as SoundCloudTrack;
   connection.trackId = queueTrack.queueId;
   if (trackFetched == null) return PlayerState.NoStream;
   return await playTrack(connection, trackFetched);

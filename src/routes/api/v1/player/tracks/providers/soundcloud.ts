@@ -3,7 +3,7 @@ import { botClient } from "@/server";
 import { getOrInitVoiceConnection } from "@/utils/voiceConnection";
 import playDl, { SoundCloudTrack } from "play-dl";
 import { AudioPlayerStatus } from "@discordjs/voice";
-import { addTrack, isQueueFull } from "@/utils/queueTracks";
+import { addTracks, isQueueFull } from "@/utils/queueTracks";
 import {
   initializeDefaultPlayerEvents,
   initializePlayer,
@@ -61,7 +61,7 @@ router.post("/:trackPermalink", async (req: Request, res: Response) => {
       return res.status(403).json({ status: "error", error: "Queue is full" });
     }
     // 2. Add track to queue
-    const queueTrack = await addTrack(playerId, so_info);
+    const queueTrack = (await addTracks(playerId, so_info))[0];
     emitEvent("new-queue-song", playerId, queueTrack);
     // 3. if player is not playing anything play added track
     if (

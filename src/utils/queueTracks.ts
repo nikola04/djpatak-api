@@ -2,58 +2,47 @@ import { SoundCloudTrack } from "play-dl";
 import { redisClient } from "@/server";
 import { v4 as uuid } from "uuid";
 import { QueueTrack } from "types/queue";
-import { isQueueTrack } from "@/validators/track";
+import { isDbTrack, isQueueTrack } from "@/validators/track";
 import queueConfig from "@/configs/queue.config.json";
 import { DbTrack } from "types/track";
 
 const redisQueueKeyByPlayerId = (playerId: string) =>
   `player:${playerId}#queue`;
 
-const soundcloudTrackToDbTrack = (track: SoundCloudTrack): DbTrack => {
-  return {
-    providerId: "soundcloud",
-    providerTrackId: String(track.permalink),
-    trackData: {
-      title: track.name,
-      thumbnail: track.thumbnail,
-      duration: track.durationInMs,
-      author: track.user.name,
+const dbTrackToQueueTrack = (track: DbTrack): QueueTrack => ({
+  queueId: uuid(),
+  ...track,
+});
+const scTrackToQueueTrack = (track: SoundCloudTrack): QueueTrack => ({
+  queueId: uuid(),
+  providerId: "soundcloud",
+  providerTrackId: track.permalink,
+  data: {
+    title: track.name,
+    permalink: track.permalink,
+    thumbnail: track.thumbnail,
+    durationInSec: track.durationInSec,
+  },
+  authors: [
+    {
+      username: track.user.name,
+      permalink: track.user.url,
     },
-  };
+  ],
+});
+const convertToQueueTrack = (track: DbTrack | SoundCloudTrack) => {
+  if (isDbTrack(track)) return dbTrackToQueueTrack(track);
+  return scTrackToQueueTrack(track);
 };
 
-async function addTrack(
+async function addTracks(
   playerId: string,
-  track: SoundCloudTrack,
-): Promise<QueueTrack>;
-async function addTrack(
-  playerId: string,
-  ...tracks: SoundCloudTrack[]
-): Promise<QueueTrack[]>;
-async function addTrack(
-  playerId: string,
-  ...tracks: SoundCloudTrack[]
-): Promise<QueueTrack | QueueTrack[]> {
-  const queueTracks: QueueTrack[] = tracks.map((track) => ({
-    queueId: uuid(),
-    ...soundcloudTrackToDbTrack(track),
-  }));
+  ...tracks: SoundCloudTrack[] | DbTrack[]
+): Promise<QueueTrack[]> {
+  const queueTracks = tracks.map(convertToQueueTrack);
   const stringifiedTracks = queueTracks.map((track) => JSON.stringify(track));
   await redisClient.rPush(redisQueueKeyByPlayerId(playerId), stringifiedTracks);
-  return queueTracks.length == 1 ? queueTracks[0] : queueTracks;
-}
-
-export async function addDbTrack(
-  playerId: string,
-  ...tracks: DbTrack[]
-): Promise<QueueTrack | QueueTrack[]> {
-  const queueTracks: QueueTrack[] = tracks.map((track) => ({
-    queueId: uuid(),
-    ...track,
-  }));
-  const stringifiedTracks = queueTracks.map((track) => JSON.stringify(track));
-  await redisClient.rPush(redisQueueKeyByPlayerId(playerId), stringifiedTracks);
-  return queueTracks.length == 1 ? queueTracks[0] : queueTracks;
+  return queueTracks;
 }
 
 async function getTracksLen(playerId: string) {
@@ -148,7 +137,7 @@ async function deleteQueue(playerId: string) {
 
 export {
   getTracksLen,
-  addTrack,
+  addTracks,
   isQueueFull,
   deleteQueue,
   getTrackByQueueId,

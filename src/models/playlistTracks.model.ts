@@ -15,8 +15,12 @@ const playlistTrackSchema = new Schema<IPlaylistTrack>({
     type: String,
     required: true,
   },
-  trackData: {
+  data: {
     title: {
+      type: String,
+      required: true,
+    },
+    permalink: {
       type: String,
       required: true,
     },
@@ -24,15 +28,17 @@ const playlistTrackSchema = new Schema<IPlaylistTrack>({
       type: String,
       required: true,
     },
-    duration: {
+    durationInSec: {
       type: Number,
       required: true,
     },
-    author: {
-      type: String,
-      required: true,
-    },
   },
+  authors: [
+    {
+      username: { type: String, required: true },
+      permalink: { type: String, required: true },
+    },
+  ],
   addedAt: {
     type: Date,
     default: Date.now,
