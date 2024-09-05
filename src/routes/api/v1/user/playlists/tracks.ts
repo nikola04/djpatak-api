@@ -6,6 +6,7 @@ import { soundcloud, SoundCloudTrack } from "play-dl";
 import PlaylistTrackModel from "@/models/playlistTracks.model";
 import PlaylistModel from "@/models/playlist.model";
 import { IPlaylist } from "types/playlist";
+import { isValidObjectId } from "mongoose";
 
 // INIT
 const router = Router({ mergeParams: true });
@@ -23,6 +24,8 @@ router.post("/", async (req: Request, res: Response) => {
   const providerId = req.body.providerId;
   if (!req.userId) return res.sendStatus(401);
   try {
+    if (!isValidObjectId(playlistId))
+      return res.status(400).json({ error: "Playlist ID is Not Valid" });
     let providerTrack: SoundCloudTrack | null = null;
     if (providerId === "soundcloud") {
       if (!(await validateTrackId(trackId)))
@@ -90,10 +93,48 @@ router.post("/", async (req: Request, res: Response) => {
   }
 });
 
+router.delete("/:trackId", async (req: Request, res: Response) => {
+  const playlistId = req.params.playlistId;
+  const { providerTrackId, providerId } = req.body;
+  if (!req.userId) return res.sendStatus(401);
+  try {
+    if (!providerId || !providerTrackId)
+      return res.status(400).json({ error: "Track data is not provided" });
+    if (!isValidObjectId(playlistId))
+      return res.status(400).json({ error: "Playlist ID is Not Valid" });
+    const playlist: IPlaylist | null = await PlaylistModel.findOneAndUpdate(
+      { _id: playlistId, ownerUserId: req.userId },
+      {
+        $set: {
+          "metadata.lastModified": Date.now(),
+        },
+      },
+    ).lean();
+    if (!playlist)
+      return res
+        .status(404)
+        .json({ status: "error", error: "That Playlist doesn't exist" });
+    if (playlist.ownerUserId != req.userId)
+      return res
+        .status(403)
+        .json({ status: "error", error: "You don't own that Playlist" });
+    await PlaylistTrackModel.deleteOne({
+      providerId,
+      providerTrackId,
+      playlistId,
+    });
+    res.json({ status: "ok" });
+  } catch (error) {
+    return res.status(500).json({ status: "error", error });
+  }
+});
+
 router.get("/", async (req: Request, res: Response) => {
   const playlistId = req.params.playlistId;
   if (!req.userId) return res.sendStatus(401);
   try {
+    if (!isValidObjectId(playlistId))
+      return res.status(400).json({ error: "Playlist ID is Not Valid" });
     const playlist: IPlaylist | null =
       await PlaylistModel.findById(playlistId).lean();
     if (!playlist)
