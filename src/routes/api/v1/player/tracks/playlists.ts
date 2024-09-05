@@ -64,7 +64,9 @@ router.post("/:playlistId", async (req: Request, res: Response) => {
         initializeDefaultPlayerEvents(playerId),
       );
     await deleteQueue(playerId);
+    emitEvent("clear-queue", playerId);
     const queueTracks = await addTracks(playerId, ...tracks);
+    emitEvent("new-queue-songs", playerId, queueTracks);
     const state = await playQueueTrack(connection, queueTracks[0]);
     if (state == PlayerState.NoStream)
       return res.json({

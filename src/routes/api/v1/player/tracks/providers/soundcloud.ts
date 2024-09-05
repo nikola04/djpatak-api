@@ -61,14 +61,15 @@ router.post("/:trackPermalink", async (req: Request, res: Response) => {
       return res.status(403).json({ status: "error", error: "Queue is full" });
     }
     // 2. Add track to queue
-    const queueTrack = (await addTracks(playerId, so_info))[0];
-    emitEvent("new-queue-song", playerId, queueTrack);
+    const queueTracks = await addTracks(playerId, so_info);
+    const firstTrack = queueTracks[0];
+    emitEvent("new-queue-songs", playerId, queueTracks);
     // 3. if player is not playing anything play added track
     if (
       connection.player?.state.status == AudioPlayerStatus.Idle ||
       forcePlay === "1"
     ) {
-      connection.trackId = queueTrack.queueId;
+      connection.trackId = firstTrack.queueId;
       const playerState = await playTrack(connection, so_info);
       if (playerState == PlayerState.NoStream)
         return res.status(404).json({
@@ -77,7 +78,7 @@ router.post("/:trackPermalink", async (req: Request, res: Response) => {
           error: "Stream Not Found",
         });
       if (playerState == PlayerState.Playing)
-        emitEvent("now-playing", playerId, queueTrack);
+        emitEvent("now-playing", playerId, firstTrack);
       // if(forcePlay === '1')
       // Emit: {USER} skipped and played {SONG}
     }

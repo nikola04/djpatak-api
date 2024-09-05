@@ -146,6 +146,7 @@ router.delete("/:queueId", async (req: Request, res: Response) => {
         .json({ status: "error", error: "You must be in same channel as Bot" });
     if (!(await removeTrackByQueueId(playerId, queueTrackId)))
       return res.json({ status: "error" });
+    emitEvent("remove-queue-song", playerId, queueTrackId);
     return res.json({ status: "ok" });
   } catch (err) {
     console.error(err);
