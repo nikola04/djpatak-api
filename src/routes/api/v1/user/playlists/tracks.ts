@@ -83,21 +83,23 @@ router.delete('/:trackId', async (req: Request, res: Response) => {
 	try {
 		if (!providerId || !providerTrackId) return res.status(400).json({ error: 'Track data is not provided' });
 		if (!isValidObjectId(playlistId)) return res.status(400).json({ error: 'Playlist ID is Not Valid' });
-		const playlist: IPlaylist | null = await PlaylistModel.findOneAndUpdate(
-			{ _id: playlistId, ownerUserId: req.userId },
-			{
-				$set: {
-					'metadata.lastModified': Date.now(),
-				},
-			}
-		).lean();
+		const playlist: IPlaylist | null = await PlaylistModel.findOne({ _id: playlistId }).lean();
 		if (!playlist) return res.status(404).json({ status: 'error', error: "That Playlist doesn't exist" });
 		if (playlist.ownerUserId != req.userId) return res.status(403).json({ status: 'error', error: "You don't own that Playlist" });
-		await PlaylistTrackModel.deleteOne({
-			providerId,
-			providerTrackId,
-			playlistId,
-		});
+		await Promise.all([
+			PlaylistModel.updateOne(
+				{ _id: playlistId },
+				{
+					$set: { 'metadata.lastModified': Date.now() },
+					$inc: { 'metadata.totalSongs': -1 },
+				}
+			),
+			PlaylistTrackModel.deleteOne({
+				providerId,
+				providerTrackId,
+				playlistId,
+			}),
+		]);
 		res.json({ status: 'ok' });
 	} catch (error) {
 		return res.status(500).json({ status: 'error', error });
