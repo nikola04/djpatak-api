@@ -1,10 +1,10 @@
 import { SoundCloudTrack } from 'play-dl';
 import { redisClient } from '@/server';
 import { v4 as uuid } from 'uuid';
-import { QueueTrack } from 'types/queue';
 import { isDbTrack, isQueueTrack } from '@/validators/track';
 import queueConfig from '@/configs/queue.config.json';
-import { DbTrack } from 'types/track';
+import { DbTrack, QueueTrack } from 'types/track';
+import { TrackProvider } from '@/enums/providers';
 
 const redisQueueKeyByPlayerId = (playerId: string) => `player:${playerId}#queue`;
 
@@ -12,9 +12,8 @@ const dbTrackToQueueTrack = (track: DbTrack): QueueTrack => ({
 	queueId: uuid(),
 	...track,
 });
-const scTrackToQueueTrack = (track: SoundCloudTrack): QueueTrack => ({
-	queueId: uuid(),
-	providerId: 'soundcloud',
+export const scTrackToDbTrack = (track: SoundCloudTrack): DbTrack => ({
+	providerId: TrackProvider.soundcloud,
 	providerTrackId: track.permalink,
 	data: {
 		title: track.name,
@@ -28,6 +27,10 @@ const scTrackToQueueTrack = (track: SoundCloudTrack): QueueTrack => ({
 			permalink: track.user.url,
 		},
 	],
+});
+const scTrackToQueueTrack = (track: SoundCloudTrack): QueueTrack => ({
+	queueId: uuid(),
+	...scTrackToDbTrack(track),
 });
 const convertToQueueTrack = (track: DbTrack | SoundCloudTrack) => {
 	if (isDbTrack(track)) return dbTrackToQueueTrack(track);
@@ -106,8 +109,8 @@ async function getAllTracks(playerId: string) {
 	const tracks = await redisClient.lRange(redisQueueKeyByPlayerId(playerId), 0, -1);
 	const queueTracks: QueueTrack[] = [];
 	tracks.forEach((track) => {
-		track = JSON.parse(track);
-		if (isQueueTrack(track)) queueTracks.push(track);
+		const parsed = JSON.parse(track);
+		if (isQueueTrack(parsed)) queueTracks.push(parsed);
 	});
 	return queueTracks;
 }

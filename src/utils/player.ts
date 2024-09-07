@@ -1,10 +1,11 @@
-import { AudioPlayerStatus, createAudioPlayer, createAudioResource, NoSubscriberBehavior, VoiceConnection } from '@discordjs/voice';
+import { AudioPlayerStatus, AudioResource, createAudioPlayer, createAudioResource, NoSubscriberBehavior, VoiceConnection } from '@discordjs/voice';
 import playDl, { SoundCloudTrack } from 'play-dl';
 import { getTrackByPosition, getTrackByQueueId } from './queueTracks';
 import { PlayerPrefrences, VolumeTransformer } from 'types/player';
-import { QueueTrack } from 'types/queue';
 import { VolumeI } from 'types/player';
 import { emitEvent } from './sockets';
+import { QueueTrack } from 'types/track';
+import { TrackProvider } from '@/enums/providers';
 
 export enum PlayerState {
 	QueueEnd,
@@ -111,20 +112,11 @@ async function playQueueFromStart(
 }
 
 async function playTrack(connection: VoiceConnection, track: SoundCloudTrack): Promise<PlayerState.NoStream | PlayerState.Playing> {
-	return playScTrack(connection, track);
-}
-
-async function playScTrack(connection: VoiceConnection, track: SoundCloudTrack): Promise<PlayerState.NoStream | PlayerState.Playing> {
 	try {
-		const stream = await playDl.stream_from_info(track).catch((err) => {
-			console.warn('> PlayDL Stream Error:', err);
-			return null;
-		});
-		if (!stream) return PlayerState.NoStream;
-		const resource = createAudioResource(stream.stream, {
-			inputType: stream.type,
-			inlineVolume: true,
-		});
+		let resource: AudioResource | null = null;
+		if (track instanceof SoundCloudTrack) resource = await getScTrackResource(track);
+		if (!resource) return PlayerState.NoStream;
+
 		if (resource.volume && connection.playerPreferences) {
 			connection.playerPreferences.volume.setVolumeResource(resource.volume); // set vol change func
 			resource.volume.setVolume(connection.playerPreferences.volume.getVolume()); // update vol
@@ -132,13 +124,31 @@ async function playScTrack(connection: VoiceConnection, track: SoundCloudTrack):
 		connection.player?.play(resource);
 		return PlayerState.Playing;
 	} catch (err) {
-		console.error('error playing track:', err);
+		console.error('Error playing Track:', err);
 		return PlayerState.NoStream;
 	}
 }
 
+async function getScTrackResource(track: SoundCloudTrack): Promise<AudioResource | null> {
+	try {
+		const stream = await playDl.stream_from_info(track).catch((err) => {
+			console.warn('> PlayDL Soundcloud Stream Error:', err);
+			return null;
+		});
+		if (!stream) return null;
+		const resource = createAudioResource(stream.stream, {
+			inputType: stream.type,
+			inlineVolume: true,
+		});
+		return resource;
+	} catch (_) {
+		return null;
+	}
+}
+
 export async function playQueueTrack(connection: VoiceConnection, queueTrack: QueueTrack) {
-	const trackFetched = (await playDl.soundcloud(queueTrack.providerTrackId)) as SoundCloudTrack;
+	let trackFetched = null;
+	if (queueTrack.providerId === TrackProvider.soundcloud) trackFetched = (await playDl.soundcloud(queueTrack.providerTrackId)) as SoundCloudTrack;
 	connection.trackId = queueTrack.queueId;
 	if (trackFetched == null) return PlayerState.NoStream;
 	return await playTrack(connection, trackFetched);

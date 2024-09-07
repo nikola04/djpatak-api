@@ -3,7 +3,7 @@ import { v4 as uuid } from 'uuid';
 import { authenticateSocketHandshake } from '../middlewares/authenticate';
 import { WebSocket, WebSocketServer } from 'ws';
 import { Repeat } from 'types/player';
-import { QueueTrack } from 'types/queue';
+import { QueueTrack } from 'types/track';
 
 const playerSocketsMap = new Map<string, string[]>();
 const socketsMap = new Map<string, WebSocket>();

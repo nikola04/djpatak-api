@@ -1,5 +1,5 @@
 import { ratelimit } from '@/middlewares/ratelimit';
-import { validateTrackId } from '@/validators/track';
+import { isValidProvider, validateTrackId } from '@/validators/track';
 import bodyParser from 'body-parser';
 import { Request, Response, Router } from 'express';
 import { soundcloud, SoundCloudTrack } from 'play-dl';
@@ -7,6 +7,7 @@ import PlaylistTrackModel from '@/models/playlistTracks.model';
 import PlaylistModel from '@/models/playlist.model';
 import { IPlaylist } from 'types/playlist';
 import { isValidObjectId } from 'mongoose';
+import { TrackProvider } from '@/enums/providers';
 
 // INIT
 const router = Router({ mergeParams: true });
@@ -24,12 +25,13 @@ router.post('/', async (req: Request, res: Response) => {
 	const providerId = req.body.providerId;
 	if (!req.userId) return res.sendStatus(401);
 	try {
-		if (!isValidObjectId(playlistId)) return res.status(400).json({ error: 'Playlist ID is Not Valid' });
+		if (!isValidObjectId(playlistId)) return res.status(400).json({ status: 'error', error: 'Playlist ID is Not Valid' });
+		if (!isValidProvider(providerId)) return res.status(400).json({ status: 'error', error: 'Provider is not valid' });
 		let providerTrack: SoundCloudTrack | null = null;
-		if (providerId === 'soundcloud') {
+		if (providerId === TrackProvider.soundcloud) {
 			if (!(await validateTrackId(trackId))) return res.status(400).json({ status: 'error', error: 'Track ID is not valid' });
 			providerTrack = (await soundcloud(trackId)) as SoundCloudTrack;
-		} else return res.status(400).json({ status: 'error', error: 'Provider is not valid' });
+		} else return res.status(400).json({ status: 'error', error: 'Provider is not supported' });
 		if (!providerTrack) return res.status(404).json({ status: 'error', error: 'Track not found' });
 		const playlist: IPlaylist | null = await PlaylistModel.findById(playlistId).lean();
 		if (!playlist) return res.status(404).json({ status: 'error', error: "That Playlist doesn't exist" });

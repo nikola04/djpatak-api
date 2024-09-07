@@ -1,6 +1,7 @@
+import { TrackProvider } from '@/enums/providers';
 import { ratelimit } from '@/middlewares/ratelimit';
 import LikedTrackModel from '@/models/likedTracks.model';
-import { validateTrackId } from '@/validators/track';
+import { isValidProvider, validateTrackId } from '@/validators/track';
 import bodyParser from 'body-parser';
 import { Router, Request, Response } from 'express';
 import { soundcloud, SoundCloudTrack } from 'play-dl';
@@ -63,11 +64,12 @@ router.post('/:trackId', async (req: Request, res: Response) => {
 	const providerId = req.body.providerId;
 	if (!req.userId) return res.sendStatus(401);
 	try {
+		if (!isValidProvider(providerId)) return res.status(400).json({ status: 'error', error: 'Provider is not valid' });
 		let track: SoundCloudTrack | null = null;
-		if (providerId === 'soundcloud') {
+		if (providerId === TrackProvider.soundcloud) {
 			if (!(await validateTrackId(trackId))) return res.status(400).json({ status: 'error', error: 'Track ID is not valid' });
 			track = (await soundcloud(trackId)) as SoundCloudTrack;
-		} else return res.status(400).json({ status: 'error', error: 'Provider is not valid' });
+		} else return res.status(400).json({ status: 'error', error: 'Provider is not supported' });
 		if (!track) return res.status(404).json({ status: 'error', error: 'Track not found' });
 		await LikedTrackModel.updateOne(
 			{

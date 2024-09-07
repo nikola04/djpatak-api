@@ -1,3 +1,4 @@
+import { TrackProvider } from '@/enums/providers';
 import { Schema } from 'mongoose';
 
 export interface TrackAuthor {
@@ -6,7 +7,7 @@ export interface TrackAuthor {
 }
 
 export interface DbTrack {
-	providerId: string;
+	providerId: TrackProvider;
 	providerTrackId: string;
 	data: {
 		title: string;
@@ -15,6 +16,10 @@ export interface DbTrack {
 		durationInSec: number;
 	};
 	authors: TrackAuthor[];
+}
+
+export interface QueueTrack extends DbTrack {
+	queueId: string;
 }
 
 export interface ILikedTrack extends DbTrack {
