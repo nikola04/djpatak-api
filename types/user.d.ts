@@ -10,7 +10,7 @@ export interface IUser {
 export interface IUserSearch {
 	_id: Schema.Types.ObjectId;
 	userId: Schema.Types.ObjectId;
-	searchProviderId: TrackProvider;
+	searchProviders: TrackProvider[];
 	search: string;
 	searchedAt: Date;
 }

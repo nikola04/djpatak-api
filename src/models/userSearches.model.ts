@@ -7,9 +7,8 @@ const userSearchSchema = new Schema<IUserSearch>({
 		ref: 'User',
 		required: true,
 	},
-	searchProviderId: {
-		type: String,
-		enum: ['soundcloud'],
+	searchProviders: {
+		type: [String],
 		required: true,
 	},
 	search: {
