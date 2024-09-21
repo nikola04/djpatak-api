@@ -24,15 +24,13 @@ router.use('/:playlistId/tracks', tracksRouter);
 router.post('/', async (req: Request, res: Response) => {
 	const { name, description } = req.body;
 	if (!req.userId) return res.sendStatus(401);
-	const trimmedName = name.trim();
-	if (!isValidPlaylistName(trimmedName))
-		return res.status(400).json({
-			error: 'Playlist Name must be between at 2 and 24 alphabet characters and emojis only',
-		});
+	if (!isValidPlaylistName(name))
+		return res.status(400).json({error: 'Playlist Name must be between at 2 and 24 alphabet characters and emojis only'});
 	if (!isValidPlaylistDescription(description))
 		return res.status(400).json({
 			error: 'If provided, Playlist Description can have maximum of 100 characters',
 		});
+	const trimmedName = name.trim();
 	try {
 		const exist = await Playlist.findOne({
 			ownerUserId: req.userId,

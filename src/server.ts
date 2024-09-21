@@ -1,17 +1,13 @@
-import express from 'express';
 import mongoose from 'mongoose';
 import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
 import { Client, Events, GatewayIntentBits } from 'discord.js';
 import { createClient } from 'redis';
 import playDl from 'play-dl';
-import cors from 'cors';
-import v1Router from '@/routes/api/v1';
-import authRouter from '@/routes/auth';
 import { handleSocketServer } from '@/utils/sockets';
+import app from './app';
 
 // INITIALIZATION
-const app = express();
 const httpServer = createServer(app);
 const wss = new WebSocketServer({ noServer: true, perMessageDeflate: false }) as WebSocketServer;
 const botClient = new Client({
@@ -24,18 +20,7 @@ const redisClient = createClient({
 		port: Number(process.env.REDIS_PORT),
 	},
 });
-app.use(
-	cors({
-		origin: process.env.APP_URL,
-		methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
-		allowedHeaders: ['Content-Type', 'Access-Control-Allow-Origin'],
-		credentials: true,
-	})
-);
 
-// ROUTES
-app.use('/api/v1/', v1Router);
-app.use('/auth', authRouter);
 
 // EVENTS
 handleSocketServer(httpServer, wss);
@@ -77,4 +62,4 @@ playDl.getFreeClientID().then((clientID: string) => {
 	});
 });
 
-export { app, botClient, redisClient };
+export { botClient, redisClient };

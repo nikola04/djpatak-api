@@ -12,7 +12,7 @@ export type PartialDiscordGuild = {
 	approximate_presence_count: number;
 };
 
-async function getDiscordAccount(userId: string) {
+async function getDiscordAccount(userId: string): Promise<IAccount | null>{
 	const account = await Account.findOne({ userId, provider: 'discord' }).lean();
 	if (!account) return null;
 	if (account.expiresAt + 10_000 < Date.now())

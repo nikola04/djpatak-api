@@ -15,8 +15,8 @@ export const authenticate = () => {
 			if (csrf_token != csrf) return res.status(401).json({ status: 'error', error: 'CSRF Token is not valid.' });
 			if (!access_token) return res.status(401).json({ status: 'error', error: 'Authorization Token is not provided.' });
 			const [verifyResponse, data] = verifyAccessToken(access_token);
-			if (verifyResponse == TokenVerifyResponse.INVALID || !data) return res.status(401).json({ status: 'error', error: 'Not logged In' });
 			if (verifyResponse == TokenVerifyResponse.EXPIRED) return res.status(401).json({ status: 'error', error: 'Token not refreshed' });
+			if (verifyResponse == TokenVerifyResponse.INVALID) return res.status(401).json({ status: 'error', error: 'Not logged In' });
 			const { userId } = data as JwtPayload;
 			req.userId = userId;
 			return next();

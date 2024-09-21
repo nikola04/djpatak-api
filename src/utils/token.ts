@@ -9,9 +9,9 @@ const privateKey = fs.readFileSync(path.join('keys', 'jwt.key'), 'utf8');
 const publicKey = fs.readFileSync(path.join('keys', 'jwt.key.pub'), 'utf8');
 
 export enum TokenVerifyResponse {
-	VALID,
-	INVALID,
-	EXPIRED,
+	VALID = "valid",
+	INVALID = "invalid",
+	EXPIRED = "expired",
 }
 
 export function generateAccessTokenJWT(userId: string, expiresIn: number = 600) {

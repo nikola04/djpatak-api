@@ -16,17 +16,21 @@ router.use('/me/likes', likesRouter);
 
 router.get('/me', ratelimit({ ratelimit: 1000, maxAttempts: 2 }), async (req: Request, res: Response) => {
 	if (!req.userId) return res.sendStatus(401);
-	const user: IUser | null = await User.findById(req.userId);
-	if (!user) return res.status(404).json({ status: 'error', error: 'User Not Found' });
-	return res.json({
-		status: 'ok',
-		data: {
-			id: user._id,
-			name: user.name,
-			email: user.email,
-			image: user.image,
-		},
-	});
+	try{
+		const user: IUser | null = await User.findById(req.userId);
+		if (!user) return res.status(404).json({ status: 'error', error: 'User Not Found' });
+		return res.json({
+			status: 'ok',
+			data: {
+				id: user._id,
+				name: user.name,
+				email: user.email,
+				image: user.image,
+			},
+		});
+	}catch(_err){
+		return res.status(500).json({ status: 'error', error: 'Internal Server Error' });
+	}
 });
 
 router.get('/me/guilds', ratelimit({ ratelimit: 1000, maxAttempts: 2 }), async (req: Request, res: Response) => {
