@@ -1,4 +1,4 @@
-import { getSubscribedSockets, subscribeSocket, unsubscribeSocket } from '../sockets';
+import { clearAllSockets, getSubscribedSockets, subscribeSocket, unsubscribeSocket } from '../sockets';
 
 describe('Sockets', () => {
 	const playerId = 'player_id_test';
@@ -6,6 +6,15 @@ describe('Sockets', () => {
 		socket2 = '456',
 		socket3 = '789',
 		socket4 = '111';
+	beforeEach(clearAllSockets)
+	it('should unsubscribe sockets', () => {
+		subscribeSocket(playerId, socket1);
+		expect(getSubscribedSockets(playerId)?.includes(socket1)).toBe(true);
+		unsubscribeSocket(socket4);
+		expect(getSubscribedSockets(playerId)?.includes(socket1)).toBe(true);
+		unsubscribeSocket(socket1);
+		expect(getSubscribedSockets(playerId)?.includes(socket1)).toBe(false); // should exist
+	});
 	it('should subscribe sockets', () => {
 		subscribeSocket(playerId, socket1);
 		subscribeSocket(playerId, socket2);
