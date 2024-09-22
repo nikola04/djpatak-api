@@ -19,7 +19,7 @@
 	"description": "",
 	"dependencies": {
 		"@discordjs/voice": "^0.17.0",
-		"bcrypt": "^5.1.1",
+		"argon2": "^0.41.1",
 		"body-parser": "^1.20.2",
 		"cookie-parser": "^1.4.6",
 		"cors": "^2.8.5",
@@ -38,7 +38,6 @@
 	},
 	"devDependencies": {
 		"@eslint/js": "^9.7.0",
-		"@types/bcrypt": "^5.0.2",
 		"@types/cookie": "^0.6.0",
 		"@types/cookie-parser": "^1.4.7",
 		"@types/cors": "^2.8.17",

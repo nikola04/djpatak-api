@@ -1,6 +1,6 @@
 import jwt, { JsonWebTokenError, JwtPayload } from 'jsonwebtoken';
 import crypto from 'crypto';
-import bcrypt from 'bcrypt';
+import argon from 'argon2';
 import fs from 'fs';
 import path from 'path';
 import Token from '@/models/token.model';
@@ -32,7 +32,7 @@ function verifyAccessToken(jwtToken: string): [TokenVerifyResponse, JwtPayload |
 
 export async function generateRefreshToken() {
 	const refreshToken = crypto.randomBytes(64).toString('hex');
-	return { hashedRefreshToken: await bcrypt.hash(refreshToken, 10), refreshToken };
+	return { hashedRefreshToken: await argon.hash(refreshToken), refreshToken };
 }
 export function generateRefreshTokenJWT(token: string, userId: string, expiresIn: number = 15811200000) {
 	return jwt.sign({ userId, refreshToken: token }, privateKey, {
@@ -52,7 +52,7 @@ function verifyRefreshTokenJWT(jwtToken: string): [TokenVerifyResponse, JwtPaylo
 }
 
 async function verifyRefreshToken(token: string, hashedToken: string) {
-	return await bcrypt.compare(token, hashedToken);
+	return await argon.verify(hashedToken, token);
 }
 
 function generateCSRF() {
