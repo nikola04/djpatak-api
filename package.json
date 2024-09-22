@@ -3,7 +3,7 @@
 	"version": "1.0.0",
 	"main": "dist/server.js",
 	"scripts": {
-		"test": "jest --watchAll --verbose",
+		"test": "jest --watchAll --verbose src/",
 		"lint": "eslint src/**/*.ts --fix",
 		"prettify": "npx prettier --write src/",
 		"dev": "node --env-file=.env.local --import=tsx --watch src/server.ts",
