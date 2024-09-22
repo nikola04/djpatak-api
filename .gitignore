@@ -2,3 +2,4 @@ node_modules/
 keys/
 dist/
 .env*
+!.env.example
