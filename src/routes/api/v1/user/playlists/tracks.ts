@@ -19,6 +19,21 @@ router.use(
 );
 router.use(bodyParser.json());
 
+router.get('/', async (req: Request, res: Response) => {
+	const playlistId = req.params.playlistId;
+	if (!req.userId) return res.sendStatus(401);
+	try {
+		if (!isValidObjectId(playlistId)) return res.status(400).json({ error: 'Playlist ID is Not Valid' });
+		const playlist: IPlaylist | null = await PlaylistModel.findById(playlistId).lean();
+		if (!playlist) return res.status(404).json({ status: 'error', error: "That Playlist doesn't exist" });
+		if (playlist.ownerUserId != req.userId) return res.status(403).json({ status: 'error', error: "You don't own that Playlist" });
+		const tracks = await PlaylistTrackModel.find({ playlistId }).lean();
+		res.json({ status: 'ok', playlist, tracks });
+	} catch (error) {
+		return res.status(500).json({ status: 'error', error });
+	}
+});
+
 router.post('/', async (req: Request, res: Response) => {
 	const playlistId = req.params.playlistId;
 	const trackId = req.body.providerTrackId;
@@ -103,21 +118,6 @@ router.delete('/:trackId', async (req: Request, res: Response) => {
 			}),
 		]);
 		res.json({ status: 'ok' });
-	} catch (error) {
-		return res.status(500).json({ status: 'error', error });
-	}
-});
-
-router.get('/', async (req: Request, res: Response) => {
-	const playlistId = req.params.playlistId;
-	if (!req.userId) return res.sendStatus(401);
-	try {
-		if (!isValidObjectId(playlistId)) return res.status(400).json({ error: 'Playlist ID is Not Valid' });
-		const playlist: IPlaylist | null = await PlaylistModel.findById(playlistId).lean();
-		if (!playlist) return res.status(404).json({ status: 'error', error: "That Playlist doesn't exist" });
-		if (playlist.ownerUserId != req.userId) return res.status(403).json({ status: 'error', error: "You don't own that Playlist" });
-		const tracks = await PlaylistTrackModel.find({ playlistId }).lean();
-		res.json({ status: 'ok', playlist, tracks });
 	} catch (error) {
 		return res.status(500).json({ status: 'error', error });
 	}
