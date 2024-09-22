@@ -68,6 +68,9 @@ export function unsubscribeSocket(socketId: string) {
 			);
 	});
 }
+export function clearAllSockets(){
+	playerSocketsMap.clear()
+}
 
 export function deleteSocket(socketId: string) {
 	for (const data of playerSocketsMap) {
