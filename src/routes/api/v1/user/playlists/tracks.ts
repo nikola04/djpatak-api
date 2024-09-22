@@ -29,8 +29,8 @@ router.get('/', async (req: Request, res: Response) => {
 		if (playlist.ownerUserId != req.userId) return res.status(403).json({ status: 'error', error: "You don't own that Playlist" });
 		const tracks = await PlaylistTrackModel.find({ playlistId }).lean();
 		res.json({ status: 'ok', playlist, tracks });
-	} catch (error) {
-		return res.status(500).json({ status: 'error', error });
+	} catch (_err) {
+		return res.status(500).json({ status: 'error', error: 'Internal Server Error' });
 	}
 });
 
