@@ -1,5 +1,15 @@
+#Dirs
 node_modules/
 keys/
 dist/
+
+#Envs
 .env*
 !.env.example
+
+#OS & Editor
+**/.DS_Store
+**/.vscode
+
+#Logs
+*.log
