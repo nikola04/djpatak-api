@@ -14,10 +14,9 @@ const botClient = new Client({
 	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates],
 });
 const redisClient = createClient({
-	password: process.env.REDIS_PSWD,
 	socket: {
-		host: process.env.REDIS_HOST,
-		port: Number(process.env.REDIS_PORT),
+		host: process.env.REDIS_HOST || 'redis',
+		port: Number(process.env.REDIS_PORT || 6379),
 	},
 });
 
@@ -35,7 +34,7 @@ botClient
 	});
 
 mongoose
-	.connect(process.env.MONGODB_URI!)
+	.connect(process.env.MONGODB_URI ?? `mongodb://mongo/`)
 	.then(() => console.log('✅', 'MongoDB Connected!'))
 	.catch((err) => {
 		console.error('❌', 'MongoDB Not Connected: ', err);
