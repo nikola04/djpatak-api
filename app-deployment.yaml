@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: djpatak-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: djpatak-api
+  template:
+    metadata:
+      labels:
+        app: djpatak-api
+    spec:
+      containers:
+        - name: djpatak-api
+          image: europe-west4-docker.pkg.dev/djpatak/djpatak/app:latest  # Full image path
+
+          imagePullPolicy: Always
+          env:
+            - name: DISCORD_CLIENT_ID
+              value: "1106974537708486757"
+            - name: DISCORD_CLIENT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: discord-secrets
+                  key: DISCORD_CLIENT_TOKEN
+            - name: DISCORD_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: discord-secrets
+                  key: DISCORD_CLIENT_SECRET
+            - name: DISCORD_REDIRECT_URI
+              value: "http://api.djpatak.nnikola.me/auth/login/callback/discord"
+            - name: REDIS_HOST
+              value: "redis-service"
+            - name: REDIS_PORT
+              value: "6379"
+            - name: MONGODB_URI
+              value: "mongodb://mongo-service/djpatak"
+            - name: APP_DOMAIN
+              value: "api.djpatak.nnikola.me"
+            - name: APP_URL
+              value: "http://localhost:3000"
+            - name: PORT
+              value: "3001"
+          ports:
+            - containerPort: 3001
+          

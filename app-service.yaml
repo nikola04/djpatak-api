@@ -1,0 +1,13 @@
+# app-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: djpatak-api-service
+spec:
+  selector:
+    app: djpatak-api
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3001
+  type: LoadBalancer
