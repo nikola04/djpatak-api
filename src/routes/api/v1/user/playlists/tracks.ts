@@ -40,8 +40,8 @@ router.post('/', async (req: Request, res: Response) => {
 	const providerId = req.body.providerId;
 	if (!req.userId) return res.sendStatus(401);
 	try {
-		if (!isValidObjectId(playlistId)) return res.status(400).json({ status: 'error', error: 'Playlist ID is Not Valid' });
-		if (!isValidProvider(providerId)) return res.status(400).json({ status: 'error', error: 'Provider is not valid' });
+		if (!isValidObjectId(playlistId)) return res.status(400).json({ status: 'error', error: 'Playlist ID is not valid' });
+		if (!isValidProvider(providerId)) return res.status(400).json({ status: 'error', error: 'Provider ID is not valid' });
 		let providerTrack: SoundCloudTrack | null = null;
 		if (providerId === TrackProvider.soundcloud) {
 			if (!(await validateTrackId(trackId))) return res.status(400).json({ status: 'error', error: 'Track ID is not valid' });

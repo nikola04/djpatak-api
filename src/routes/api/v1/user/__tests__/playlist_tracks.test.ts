@@ -1,7 +1,10 @@
 import app from '@/app';
+import { TrackProvider } from '@/enums/providers';
 import PlaylistModel from '@/models/playlist.model';
 import PlaylistTrackModel from '@/models/playlistTracks.model';
+import { isValidProvider, validateTrackId } from '@/validators/track';
 import { Request, Response, NextFunction } from 'express';
+import { soundcloud, SoundCloudTrack } from 'play-dl';
 import request from 'supertest';
 
 jest.mock('@/server', () => ({
@@ -17,6 +20,8 @@ jest.mock('@/middlewares/authenticate', () => ({
 		next();
 	}),
 }));
+jest.mock('play-dl')
+jest.mock('@/validators/track')
 jest.mock('@/models/playlist.model');
 jest.mock('@/models/playlistTracks.model');
 
@@ -82,4 +87,47 @@ describe('GET /users/me/playlists/:id/tracks', () => {
 	});
 });
 
-describe('POST /users/me/playlist/:id/tracks', () => {});
+describe('POST /users/me/playlist/:id/tracks', () => {
+	const validProviderId = TrackProvider.soundcloud;
+	const validTrackId = 'valid_track_id';
+	const mockRequest = async (playlistId: string = validObjectId, providerId: string = validProviderId, trackId: string = validTrackId) => 
+		request(app).post(`/api/v1/users/me/playlists/${playlistId}/tracks`).send({
+			providerId,
+			trackId
+		});
+	beforeAll(() => {
+		jest.mocked(isValidProvider).mockImplementation((trackId: string) => trackId === validProviderId)
+		jest.mocked(validateTrackId).mockImplementation((trackId: string) => Promise.resolve(trackId === validTrackId))
+		jest.mocked(soundcloud).mockImplementation((trackId: string) => {
+			if(trackId !== validTrackId) throw new Error('Invalid Track ID')
+			return Promise.resolve({
+				name: 'foo',
+				permalink: 'bar',
+				thumbnail: 'baz',
+				durationInSec: 10,
+				user: {
+					name: 'user_name',
+					url: 'user_url',
+				}
+			} as SoundCloudTrack)
+		})
+	})
+	it('should return 400 when playlist id is not valid', async () => {
+		const response = await mockRequest('invalid_object_id');
+		expectStatusAndError(response, 400, 'Playlist ID is not valid');
+	})
+	it('should return 400 when provider id is not valid', async () => {
+		const response = await mockRequest(validObjectId, 'invalid_provider_id');
+		expectStatusAndError(response, 400, 'Provider ID is not valid');
+	})
+	it('should return 400 when track id is not valid', async () => {
+		const response = await mockRequest(validObjectId, validProviderId, 'invalid_track_id');
+		expectStatusAndError(response, 400, 'Track ID is not valid');
+	})
+	// TODO: Fix this test and add more cases
+	// it('should return 404 when playlist is not found', async () => {
+	// 	spyOnFindWithLean('findById', null);
+	// 	const response = await mockRequest();
+	// 	expectStatusAndError(response, 400, "That Playlist doesn't exist");
+	// })
+});
