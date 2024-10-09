@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import guildRoute from './guild';
 import tracksRoute from './tracks';
 import playerRoute from './player';
 import usersRoute from './user';
@@ -19,6 +20,7 @@ router.use(
 );
 
 // ROUTES
+router.use('/guild', guildRoute);
 router.use('/tracks', tracksRoute);
 router.use('/player', playerRoute);
 router.use('/users', usersRoute);
