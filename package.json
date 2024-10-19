@@ -20,11 +20,11 @@
 	"dependencies": {
 		"@discordjs/voice": "^0.17.0",
 		"argon2": "^0.41.1",
-		"body-parser": "^1.20.2",
+		"body-parser": "^1.20.3",
 		"cookie-parser": "^1.4.6",
 		"cors": "^2.8.5",
 		"discord.js": "^14.15.3",
-		"express": "^4.19.2",
+		"express": "^4.21.1",
 		"ffmpeg-static": "^5.2.0",
 		"jsonwebtoken": "^9.0.2",
 		"mongoose": "^8.5.0",
